@@ -62,6 +62,7 @@ void Set_Result(Result_t *res, uint32_t CodeLine, const char *FunctionName, cons
 void Set_Result_State(Result_t *res, Status_t Status, uint32_t CodeLine, const char *FunctionName, const char *FileName);
 
 bool CheckResult(Result_t res);
+bool CheckStatus(Result_t res);
 
 
 

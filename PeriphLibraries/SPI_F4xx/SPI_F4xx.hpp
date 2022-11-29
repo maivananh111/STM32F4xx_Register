@@ -129,6 +129,9 @@ void SPI<DataSize>::Init(SPI_Config_t *conf){
 	else if(_spi == SPI2) RCC -> APB1ENR |= RCC_APB1ENR_SPI2EN;
 	else if(_spi == SPI3) RCC -> APB1ENR |= RCC_APB1ENR_SPI3EN;
 
+	GPIO_PortClockEnable(_conf -> CLKPort);
+	GPIO_PortClockEnable(_conf -> MISOPort);
+	GPIO_PortClockEnable(_conf -> MOSIPort);
 
 	if(_spi == SPI1 || _spi == SPI2){
 		GPIO_AlternateFunction(_conf -> CLKPort, _conf -> CLKPin, AF5_SPI1_2);
@@ -162,10 +165,8 @@ void SPI<DataSize>::Init(SPI_Config_t *conf){
 
 template <typename DataSize>
 Result_t SPI<DataSize>::Transmit(DataSize *TxData, uint32_t Data_Number){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
 	uint32_t TxCount = Data_Number;
 
 	if(_conf->spi_mode == SPI_HALFDUPLEXMASTER){
@@ -178,59 +179,13 @@ Result_t SPI<DataSize>::Transmit(DataSize *TxData, uint32_t Data_Number){
 	while(TxCount--){
 		res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_TXE, FLAG_SET, SPI_TIMEOUT);
 		if(res.Status != OKE) {res.CodeLine = __LINE__;
-			return res;
+//			return res;
 		}
 
 		_spi -> DR = (uint32_t)(*TxData);
 
 		if(_conf->spi_datasize == SPI_DATA8BIT) TxData += sizeof(uint8_t);
 		else if(_conf->spi_datasize == SPI_DATA16BIT) TxData += sizeof(uint16_t);
-	}
-
-	res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_BSY, FLAG_RESET, SPI_TIMEOUT);
-	if(res.Status != OKE) {res.CodeLine = __LINE__;
-		return res;
-	}
-
-	if(_conf->spi_mode == SPI_FULLDUPLEXMASTER){
-		__IO uint32_t clr_ovr = _spi -> DR;
-		clr_ovr = _spi -> SR;
-		(void)clr_ovr;
-	}
-	return res;
-}
-
-template <typename DataSize>
-Result_t SPI<DataSize>::Receive(DataSize *RxData, uint32_t Data_Number){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
-	uint32_t RxCount = 0;
-
-	if(_conf->spi_mode == SPI_HALFDUPLEXMASTER) {
-		res.Status = NOTSUPPORT;
-		res.CodeLine = __LINE__;
-		return res;
-	}
-
-	if((_spi -> CR1 & SPI_CR1_SPE) != SPI_CR1_SPE) _spi -> CR1 |= SPI_CR1_SPE;
-
-	while(RxCount++ < Data_Number){
-		res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_TXE, FLAG_SET, SPI_TIMEOUT);
-		if(res.Status != OKE) {res.CodeLine = __LINE__;
-//			return res;
-		}
-		_spi -> DR = 0x00UL;
-
-		res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_RXNE, FLAG_SET, SPI_TIMEOUT);
-		if(res.Status != OKE) {res.CodeLine = __LINE__;
-//			return res;
-		}
-		*RxData = (DataSize)_spi -> DR;
-
-		if(_conf->spi_datasize == SPI_DATA8BIT) RxData += sizeof(uint8_t);
-		else if(_conf->spi_datasize == SPI_DATA16BIT) RxData += sizeof(uint16_t);
 	}
 
 	res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_BSY, FLAG_RESET, SPI_TIMEOUT);
@@ -247,16 +202,56 @@ Result_t SPI<DataSize>::Receive(DataSize *RxData, uint32_t Data_Number){
 }
 
 template <typename DataSize>
+Result_t SPI<DataSize>::Receive(DataSize *RxData, uint32_t Data_Number){
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
+	uint32_t RxCount = 0;
+
+	if(_conf->spi_mode == SPI_HALFDUPLEXMASTER) {
+		Set_Result_State(&res, NOTSUPPORT, __LINE__, __FUNCTION__, __FILE__);
+		return res;
+	}
+
+	if((_spi -> CR1 & SPI_CR1_SPE) != SPI_CR1_SPE) _spi -> CR1 |= SPI_CR1_SPE;
+
+	while(RxCount++ < Data_Number){
+		res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_TXE, FLAG_SET, SPI_TIMEOUT);
+		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
+		}
+		_spi -> DR = 0x00UL;
+
+		res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_RXNE, FLAG_SET, SPI_TIMEOUT);
+		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
+		}
+		*RxData = (DataSize)_spi -> DR;
+
+		if(_conf->spi_datasize == SPI_DATA8BIT) RxData += sizeof(uint8_t);
+		else if(_conf->spi_datasize == SPI_DATA16BIT) RxData += sizeof(uint16_t);
+	}
+
+	res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_BSY, FLAG_RESET, SPI_TIMEOUT);
+	if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
+	}
+
+	if(_conf->spi_mode == SPI_FULLDUPLEXMASTER){
+		__IO uint32_t clr_ovr = _spi -> DR;
+		clr_ovr = _spi -> SR;
+		(void)clr_ovr;
+	}
+	return res;
+}
+
+template <typename DataSize>
 Result_t SPI<DataSize>::Transmit_Receive(DataSize *TxData, DataSize *RxData, uint32_t Data_Number){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
 	uint32_t TxRxCount = Data_Number;
 
 	if(_conf->spi_mode == SPI_HALFDUPLEXMASTER) {
-		res.Status = NOTSUPPORT;
-		res.CodeLine = __LINE__;
+		Set_Result_State(&res, NOTSUPPORT, __LINE__, __FUNCTION__, __FILE__);
 		return res;
 	}
 
@@ -264,14 +259,14 @@ Result_t SPI<DataSize>::Transmit_Receive(DataSize *TxData, DataSize *RxData, uin
 
 	while(TxRxCount--){
 		res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_TXE, FLAG_SET, SPI_TIMEOUT);
-		if(res.Status != OKE) {res.CodeLine = __LINE__;
-			return res;
+		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
 		}
 		_spi -> DR = *TxData;
 
 		res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_RXNE, FLAG_SET, SPI_TIMEOUT);
-		if(res.Status != OKE) {res.CodeLine = __LINE__;
-			return res;
+		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
 		}
 		*RxData = (DataSize)_spi -> DR;
 
@@ -286,8 +281,8 @@ Result_t SPI<DataSize>::Transmit_Receive(DataSize *TxData, DataSize *RxData, uin
 	}
 
 	res = WaitFlagTimeout(&(_spi -> SR), SPI_SR_BSY, FLAG_RESET, SPI_TIMEOUT);
-	if(res.Status != OKE) {res.CodeLine = __LINE__;
-		return res;
+	if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
 	}
 
 	if(_conf->spi_mode == SPI_FULLDUPLEXMASTER){
@@ -300,40 +295,35 @@ Result_t SPI<DataSize>::Transmit_Receive(DataSize *TxData, DataSize *RxData, uin
 
 template <typename DataSize>
 Result_t SPI<DataSize>::Transmit(DataSize TxData){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
+
 	res = Transmit(&TxData, 1);
 	return res;
 }
 
 template <typename DataSize>
 Result_t SPI<DataSize>::Receive(DataSize *RxData){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
+
 	res = Receive(RxData, 1);
 	return res;
 }
 
 template <typename DataSize>
 Result_t SPI<DataSize>::Transmit_Receive(DataSize TxData, DataSize *RxData){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
+
 	res = Transmit_Receive(&TxData, RxData, 1);
 	return res;
 }
 
 template <typename DataSize>
 Result_t SPI<DataSize>::Transmit_DMA(DataSize *TxData, uint32_t Data_Number){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	_spi -> CR1 &=~ SPI_CR1_SPE;
 	if(_conf -> spi_mode == SPI_HALFDUPLEXMASTER) _spi -> CR1 |= SPI_CR1_BIDIOE;
@@ -341,8 +331,8 @@ Result_t SPI<DataSize>::Transmit_DMA(DataSize *TxData, uint32_t Data_Number){
 	_spi -> CR2 &=~ SPI_CR2_TXDMAEN;
 
 	res = _TxDma -> Start((uint32_t)TxData, (uint32_t) &(_spi -> DR), Data_Number);
-	if(res.Status != OKE) {res.CodeLine = __LINE__;
-//		return res;
+	if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
 	}
 
 	_spi -> CR1 |= SPI_CR1_SPE;
@@ -354,17 +344,15 @@ Result_t SPI<DataSize>::Transmit_DMA(DataSize *TxData, uint32_t Data_Number){
 
 template <typename DataSize>
 Result_t SPI<DataSize>::Receive_DMA(DataSize *RxData, uint32_t Data_Number){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	_spi -> CR1 &=~ SPI_CR1_SPE;
 	_spi -> CR2 &=~ SPI_CR2_RXDMAEN;
 
 	res = _RxDma -> Start((uint32_t) &(_spi -> DR), (uint32_t)RxData, Data_Number);
-	if(res.Status != OKE) {res.CodeLine = __LINE__;
-//		return res;
+	if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
 	}
 
 	_spi -> CR1 |= SPI_CR1_SPE;
@@ -376,22 +364,20 @@ Result_t SPI<DataSize>::Receive_DMA(DataSize *RxData, uint32_t Data_Number){
 
 template <typename DataSize>
 Result_t SPI<DataSize>::Transmit_Receive_DMA(DataSize *TxData, DataSize *RxData, uint32_t Data_Number){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	_spi -> CR1 &=~ SPI_CR1_SPE;
 	_spi -> CR2 &=~ (SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN);
 
 	res = _RxDma -> Start((uint32_t) &(_spi -> DR), (uint32_t)RxData, Data_Number);
-	if(res.Status != OKE) {res.CodeLine = __LINE__;
-//		return res;
+	if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
 	}
 
 	res = _TxDma -> Start((uint32_t)TxData, (uint32_t) &(_spi -> DR), Data_Number);
-	if(res.Status != OKE) {res.CodeLine = __LINE__;
-//		return res;
+	if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+//			return res;
 	}
 
 	_spi -> CR1 |= SPI_CR1_SPE;
@@ -403,22 +389,20 @@ Result_t SPI<DataSize>::Transmit_Receive_DMA(DataSize *TxData, DataSize *RxData,
 
 template <typename DataSize>
 Result_t SPI<DataSize>::Stop_DMA(void){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	if(_spi -> CR2 & SPI_CR2_RXDMAEN) {
 		res = _RxDma -> Stop();
-		if(res.Status != OKE) {res.CodeLine = __LINE__;
-
+		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+	//			return res;
 		}
 	}
 
 	if(_spi -> CR2 & SPI_CR2_TXDMAEN) {
 		res = _TxDma -> Stop();
-		if(res.Status != OKE) {res.CodeLine = __LINE__;
-
+		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+	//			return res;
 		}
 	}
 	_spi -> CR2 &=~ (SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN);

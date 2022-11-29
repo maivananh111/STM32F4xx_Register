@@ -36,10 +36,6 @@ void USART::Init(USART_Config_t *conf){
 		GPIO_AlternateFunction(_conf -> Port, _conf -> RxPin, AF8_USART4_6);
 	}
 
-	if(_conf -> Type == USART_INTERRUPT) {
-		if(_conf -> InterruptSelect & USART_INTR_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
-		if(_conf -> InterruptSelect & USART_INTR_TX) _usart -> CR1 |= USART_CR1_TCIE;
-	}
 
 	if(_usart == USART1 || _usart == USART6) {
 		RCC -> APB2ENR |= RCC_APB2ENR_USART1EN | RCC_APB2ENR_USART6EN;
@@ -51,6 +47,10 @@ void USART::Init(USART_Config_t *conf){
 	}
 
 	_usart -> CR1 |= USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
+	if(_conf -> Type == USART_INTERRUPT) {
+		if(_conf -> InterruptSelect & USART_INTR_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
+		if(_conf -> InterruptSelect & USART_INTR_TX) _usart -> CR1 |= USART_CR1_TCIE;
+	}
 
 	float USARTDIV = (float)(USART_BusFreq/(_conf -> Baudrate * 16.0));
 	uint16_t DIV_Fraction = 0x00UL;
@@ -82,7 +82,7 @@ Result_t USART::Transmit(uint8_t Data){
 
 	res = WaitFlagTimeout(&(_usart -> SR), USART_SR_TC, FLAG_SET, USART_TIMEOUT);
 	if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
-//		return res;
+		return res;
 	}
 
 	volatile uint32_t tmp = _usart -> SR;
@@ -99,7 +99,7 @@ Result_t USART::SendString(char *String){
 		res = Transmit(*String++);
 
 		if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
-//			return res;
+			return res;
 		}
 	}
 	return res;
@@ -110,7 +110,7 @@ Result_t USART::Receive(uint8_t *Data){
 
 	res = WaitFlagTimeout(&(_usart -> SR), USART_SR_RXNE, FLAG_SET, USART_TIMEOUT);
 	if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
-//		return res;
+		return res;
 	}
 
 	*Data = _usart -> DR;
@@ -119,34 +119,35 @@ Result_t USART::Receive(uint8_t *Data){
 }
 
 Result_t USART::TransmitDMA(uint8_t *TxData, uint16_t Length){
-	Result_t res = {OKE};
-
+	Result_t res = {
+		.Status = OKE,
+		.CodeLine = 0,
+	};
 	_usart -> CR3 &=~ USART_CR3_DMAT;
-
 	res = _TxDma -> Start((uint32_t)TxData, (uint32_t)&_usart -> DR, Length);
-	if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
-//		return res;
+	if(res.Status != OKE){res.CodeLine = __LINE__;
+		return res;
 	}
-
-	_usart -> SR =~ USART_SR_TC;
+	_usart -> SR &=~ USART_SR_TC;
 	_usart -> CR3 |= USART_CR3_DMAT;
 
 	return res;
 }
 
 Result_t USART::ReceiveDMA(uint8_t *RxData, uint16_t Length){
-	Result_t res = {OKE};
-
+	Result_t res = {
+		.Status = OKE,
+		.CodeLine = 0,
+	};
 	_usart -> CR3 &=~ USART_CR3_DMAR;
-
 	res = _RxDma -> Start((uint32_t)&_usart -> DR, (uint32_t)RxData, Length);
-	if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
-//		return res;
+	if(res.Status != OKE){res.CodeLine = __LINE__;
+		return res;
 	}
-
 	volatile uint32_t tmp = _usart -> SR;
 	tmp = _usart -> DR;
 	(void)tmp;
+
 	_usart -> CR1 |= USART_CR1_PEIE;
 	_usart -> CR3 |= USART_CR3_EIE;
 	_usart -> CR3 |= USART_CR3_DMAR;
@@ -155,32 +156,32 @@ Result_t USART::ReceiveDMA(uint8_t *RxData, uint16_t Length){
 }
 
 Result_t USART::Stop_DMA(void){
-	Result_t res = {OKE};
+	Result_t res = {
+		.Status = OKE,
+		.CodeLine = 0,
+	};
 	if(_usart -> CR3 & USART_CR3_DMAT){
-		_usart -> CR3 =~ USART_CR3_DMAT;
+		_usart -> CR3 &=~ USART_CR3_DMAT;
 		res = _TxDma -> Stop();
-
-		if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
-//			return res;
+		if(res.Status != OKE){res.CodeLine = __LINE__;
+			return res;
 		}
-
-		_usart -> CR1 &=~ (USART_CR1_TXEIE | USART_CR1_TCIE);
+		_usart -> CR1 &=~ USART_CR1_TXEIE;
 	}
 
 	if(_usart -> CR3 & USART_CR3_DMAR){
-		_usart -> CR3 =~ USART_CR3_DMAR;
-
+		_usart -> CR3 &=~ USART_CR3_DMAR;
 		res = _RxDma -> Stop();
-		if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
-//			return res;
+		if(res.Status != OKE){res.CodeLine = __LINE__;
+			return res;
 		}
-
-		_usart -> CR1 &=~ (USART_CR1_RXNEIE | USART_CR1_PEIE);
+		_usart -> CR1 &=~ USART_CR1_PEIE;
 		_usart -> CR3 &=~ USART_CR3_EIE;
 	}
 
 	else{
-		Set_Result_State(&res, ERR, __LINE__, __FUNCTION__, __FILE__);
+		res.CodeLine = __LINE__;
+		res.Status = ERR;
 	}
 
 	return res;

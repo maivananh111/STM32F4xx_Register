@@ -39,6 +39,21 @@ RCC_Config_t rcc = {
 	rcc.PLL.PLLQ = 7U,
 };
 
+
+DMA_Config_t uart_log_TxDma_conf = {
+	.dma = DMA1,
+	.dma_stream = DMA1_Stream6,
+	.dma_channel = DMA_Channel4,
+	.dma_direction = DMA_MEM_TO_PERIPH,
+	.dma_mode = DMA_NORMAL,
+	.dma_data_size = DMA_DATA8BIT,
+	.dma_fifo = DMA_NOFIFO,
+	.dma_channel_priority = DMA_CHANNEL_PRIORITY_LOW,
+	.dma_interrupt_select = DMA_TRANSFER_COMPLETE_INTERRUPT,
+	.dma_interrupt_priority = 1,
+};
+
+DMA uart_log_TxDma(DMA1);
 USART_Config_t uart_log_conf = {
 	.Baudrate = 115200U,
 	.Type = USART_NORMAL_DMA,
@@ -47,8 +62,10 @@ USART_Config_t uart_log_conf = {
 	.Port = GPIOA,
 	.TxPin = 2,
 	.RxPin = 3,
+	.TxDma = &uart_log_TxDma,
 };
 USART uart_log(USART2);
+volatile uint8_t dma_uart_log_tx_flag = 0;
 
 
 DMA_Config_t fls_spi_TxDma_conf = {
@@ -87,11 +104,24 @@ SPIFLASH spiflash(GPIOA, 8);
 
 
 
+I2C_Config_t i2c_conf = {
+	.i2c_mode = I2C_FAST_MODE,
+	.i2c_frequency = 400000UL,
+	.SCLPort = GPIOB,
+	.SDAPort = GPIOB,
+	.SCLPin = 6,
+	.SDAPin = 7,
+};
+I2C i2c(I2C1);
+
+static Result_t res;
 static const char * TAG = "Initialize";
 static void STM_LOGSET(char *Buffer);
 
 
 void Periph_Initialize(void){
+	Set_Result_State(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
+
 	Power_Configuration(&pwr);
 	FlashMem_Configuration(&flash);
 	HSClock_Init(&rcc);
@@ -101,11 +131,15 @@ void Periph_Initialize(void){
 	GPIO_CLOCKENABLE();
 	GPIO_Init(GPIOC, 13, GPIO_OUTPUT_PUSHPULL);
 
+	uart_log_TxDma.Init(&uart_log_TxDma_conf);
 	uart_log.Init(&uart_log_conf);
 	STM_LOG_Init(&STM_LOGSET);
 
 	fls_spi_TxDma.Init(&fls_spi_TxDma_conf);
 	fls_spi.Init(&fls_spi_conf);
+
+	i2c.Init(&i2c_conf);
+	STM_LOG(BOLD_CYAN, TAG, "I2C1 Initialize OKE.");
 
 }
 
@@ -115,21 +149,37 @@ void AppLayer_Initialize(void){
 
 	TickDelay_ms(1000);
 	uint32_t ID = spiflash.Init(&fls_spi);
-	spiflash.UnProtectedChip();
-	ID = spiflash.Init(&fls_spi);
 	STM_LOG(BOLD_GREEN, TAG, "Flash Initialize finish, ID: 0x%06x.", ID);
 
-
+	STM_LOG(BOLD_GREEN, TAG, "I2C1 Start scan.");
+	for(uint8_t i=0; i<128; i++){
+		res = i2c.CheckDevices((uint16_t)(i<<1), 3, 5);
+		if(!CheckResult(res)){
+			STM_LOG(BOLD_RED, TAG, "No devices at 0x%02x", i);
+		}
+		else {
+			STM_LOG(BOLD_CYAN, TAG, "Finded devices at 0x%02x", i);
+		}
+		STM_LOG(SIMP_BLUE, "I2C Status", "Status %d, Line %d.", res.Status, res.CodeLine);
+	}
+	STM_LOG(BOLD_YELLOW, TAG, "I2C1 End scan.");
 
 
 }
 
 static void STM_LOGSET(char *Buffer){
-	uart_log.SendString(Buffer);
+	uart_log.TransmitDMA((uint8_t *)Buffer, (uint16_t)strlen(Buffer));
+	while(!dma_uart_log_tx_flag);
+	uart_log.Stop_DMA();
+	dma_uart_log_tx_flag = 0;
 }
 
 void DMA1_Stream4_TranferComplete_CallBack(void){
 	dma_flash_tx_flag = 1;
+}
+
+void DMA1_Stream6_TranferComplete_CallBack(void){
+	dma_uart_log_tx_flag = 1;
 }
 
 

@@ -27,21 +27,18 @@ Result_t HSClock_Init(RCC_Config_t *conf){
 
 	if(_conf -> CLOCK_SOURCE == HSI_CRYSTAL){
 		RCC -> CR |= RCC_CR_HSION;
-//		while(!(RCC -> CR & RCC_CR_HSIRDY));
 		res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_HSIRDY, FLAG_SET, DEFAULT_TIMEOUT);
 		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
 		RCC -> CR |= (_conf -> HSI_TRIM_VALUE << RCC_CR_HSITRIM_Pos);
 	}
 	else if(_conf -> CLOCK_SOURCE == HSE_CRYSTAL){
 		RCC -> CR |= RCC_CR_HSEON;
-//		while(!(RCC -> CR & RCC_CR_HSERDY));
 		res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_HSERDY, FLAG_SET, DEFAULT_TIMEOUT);
 		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
 	}
 
 	if(_conf -> CLOCK_MUX == PLLCLK){
 		RCC -> CR &=~ RCC_CR_PLLON;
-//		while((RCC -> CR & RCC_CR_PLLRDY));
 		res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_PLLRDY, FLAG_RESET, DEFAULT_TIMEOUT);
 		if(res.Status != OKE) {res.CodeLine = __LINE__; return res;}
 
@@ -61,7 +58,6 @@ Result_t HSClock_Init(RCC_Config_t *conf){
 		else if(_conf -> CLOCK_SOURCE == HSE_CRYSTAL) RCC -> PLLCFGR |= RCC_PLLCFGR_PLLSRC;
 
 		RCC -> CR |= RCC_CR_PLLON;
-//		while(!(RCC -> CR & RCC_CR_PLLRDY));
 		res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_PLLRDY, FLAG_SET, DEFAULT_TIMEOUT);
 		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
 
@@ -70,7 +66,6 @@ Result_t HSClock_Init(RCC_Config_t *conf){
 		tmpreg &=~ RCC_CFGR_SW_Msk;
 		tmpreg |= RCC_CFGR_SW_PLL;
 		RCC -> CFGR = tmpreg;
-//		while(!(RCC -> CFGR & RCC_CFGR_SWS_PLL));
 		res = WaitFlagTimeoutBasic(&(RCC -> CFGR), RCC_CFGR_SWS_PLL, FLAG_SET, DEFAULT_TIMEOUT);
 		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
 	}

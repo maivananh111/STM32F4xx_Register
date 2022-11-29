@@ -69,7 +69,7 @@ Result_t CheckFlag_In_WaitFlagTimeout(__IO uint32_t *RegisterCheck, uint32_t Fla
 
 	__IO uint32_t tick = GetCounterFunction();
 	while((LevelWait == FLAG_RESET)? (*RegisterWait & FlagWait) : (!(*RegisterWait & FlagWait))){
-		res.Time   = GetCounterFunction() - tick;
+		res.Time = GetCounterFunction() - tick;
 		if((LevelCheck == FLAG_RESET)? (!(*RegisterCheck & FlagCheck)) : (*RegisterCheck & FlagCheck)) {
 			res.Status = ERR;
 			return res;
@@ -104,3 +104,27 @@ bool CheckResult(Result_t res){
 	if(res.Status != OKE) return false;
 	return true;
 }
+
+bool CheckStatus(Result_t res){
+	if(res.Status != READY) return false;
+	return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

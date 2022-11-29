@@ -105,12 +105,13 @@ class DMA {
 
 		DMA_TypeDef *_dma;
 
-
 		Status_t _state = READY;
 		IRQn_Type _IRQn = DMA1_Stream0_IRQn;
 		__IO uint32_t _Intr_Index = 0U;
 		uint32_t Stream = 0U;
 		uint8_t DMA_Reg_Level = 0U; // 0 is LOW register.
+		volatile uint32_t *ICFR = 0x00000000U;
+		volatile uint32_t *ISR  = 0x00000000U;
 };
 
 

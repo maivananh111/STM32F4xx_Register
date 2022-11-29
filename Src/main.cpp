@@ -13,7 +13,6 @@ uint8_t Txbuf[256];
 uint32_t addr = 0x200UL;
 char buf[17];
 
-
 void ShowFlashData(uint32_t addr);
 
 
@@ -29,12 +28,17 @@ int main (void){
 	spiflash.WriteBytes(addr, Txbuf, 256);
 	ShowFlashData(addr);
 
+	spiflash.EraseSector(addr/4096);
+	ShowFlashData(addr);
+
+	for(uint16_t i=0; i<256; i++) Txbuf[i] = 255-i;
+	spiflash.WriteBytes(addr, Txbuf, 256);
+	ShowFlashData(addr);
+
 	while(1){
 		GPIO_Toggle(GPIOC, 13);
 		TickDelay_ms(500);
 //		STM_LOG(BOLD_GREEN, TAG, "Count = %d", count++);
-
-
 	}
 }
 

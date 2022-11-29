@@ -310,18 +310,17 @@ void SPIFLASH::ReadBytes(uint32_t ReadAddress, uint8_t *Data, uint16_t NumByteRe
 	SetAddress(ReadAddress);
 	_spi -> Transmit(0);
 
-//	if(_spi -> _RxDma != NULL && _spi -> _TxDma != NULL){
-//		uint8_t *TxDummyBuf = (uint8_t *)malloc(NumByteRead * sizeof(uint8_t));
-//		memset(TxDummyBuf, 0x00, NumByteRead);
-//		_spi -> Transmit_Receive_DMA(TxDummyBuf, Data, (uint16_t)NumByteRead);
-//		while(!dma_flash_rx_flag);
-//		_spi -> Stop_DMA();
-//		dma_flash_tx_flag = 0;
-//		dma_flash_rx_flag = 0;
-//		free(TxDummyBuf);
-//	}
-//	else
-		_spi -> Receive(Data, NumByteRead);
+	if(_spi -> _RxDma != NULL && _spi -> _TxDma != NULL){
+		uint8_t *TxDummyBuf = (uint8_t *)malloc(NumByteRead * sizeof(uint8_t));
+		memset(TxDummyBuf, 0x00, NumByteRead);
+		_spi -> Transmit_Receive_DMA(TxDummyBuf, Data, (uint16_t)NumByteRead);
+		while(!dma_flash_rx_flag);
+		_spi -> Stop_DMA();
+		dma_flash_tx_flag = 0;
+		dma_flash_rx_flag = 0;
+		free(TxDummyBuf);
+	}
+	else _spi -> Receive(Data, NumByteRead);
 
 #ifdef SPIFLASH_CSPIN_EN
     CS_Idle();
@@ -339,14 +338,14 @@ void SPIFLASH::WriteBytes(uint32_t WriteAddress, uint8_t *Data, uint16_t NumByte
     _spi -> Transmit(CMD_PAGE_PROGRAMM);
     SetAddress(WriteAddress);
 
-//    if(_spi -> _TxDma == NULL)
-//    _spi -> Transmit(Data, NumByteWrite);
-//    else{
+    if(_spi -> _TxDma == NULL)
+    _spi -> Transmit(Data, NumByteWrite);
+    else{
 		_spi -> Transmit_DMA(Data, (uint16_t)NumByteWrite);
 		while(!dma_flash_tx_flag);
 		_spi -> Stop_DMA();
 		dma_flash_tx_flag = 0;
-//    }
+    }
 #ifdef SPIFLASH_CSPIN_EN
     CS_Idle();
 #endif
