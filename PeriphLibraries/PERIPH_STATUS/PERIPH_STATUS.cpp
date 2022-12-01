@@ -86,6 +86,9 @@ Result_t CheckFlag_In_WaitFlagTimeout(__IO uint32_t *RegisterCheck, uint32_t Fla
 	return res;
 }
 
+void Set_Line(Result_t *res, uint16_t line){
+	res -> CodeLine = line;
+}
 
 void Set_Result(Result_t *res, uint32_t CodeLine, const char *FunctionName, const char *FileName){
 	res -> CodeLine = CodeLine;
@@ -109,6 +112,8 @@ bool CheckStatus(Result_t res){
 	if(res.Status != READY) return false;
 	return true;
 }
+
+
 
 
 

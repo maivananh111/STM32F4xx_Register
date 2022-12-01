@@ -13,32 +13,56 @@ uint8_t Txbuf[256];
 uint32_t addr = 0x200UL;
 char buf[17];
 
+#define MPU6050_ADDR 0xD0
+
+#define SMPLRT_DIV_REG 0x19
+#define GYRO_CONFIG_REG 0x1B
+#define ACCEL_CONFIG_REG 0x1C
+#define ACCEL_XOUT_H_REG 0x3B
+#define TEMP_OUT_H_REG 0x41
+#define GYRO_XOUT_H_REG 0x43
+#define PWR_MGMT_1_REG 0x6B
+#define WHO_AM_I_REG 0x75
+
+
+int16_t Accel_X_RAW = 0;
+int16_t Accel_Y_RAW = 0;
+int16_t Accel_Z_RAW = 0;
+
+int16_t Gyro_X_RAW = 0;
+int16_t Gyro_Y_RAW = 0;
+int16_t Gyro_Z_RAW = 0;
+
+float Ax, Ay, Az, Gx, Gy, Gz;
+
 void ShowFlashData(uint32_t addr);
+void MPU6050_Init(void);
+void MPU6050_Read_Accel(void);
+void MPU6050_Read_Gyro(void);
 
-
-uint32_t count = 0;
 int main (void){
 	Periph_Initialize();
 	AppLayer_Initialize();
 
-	spiflash.EraseSector(addr/4096);
-	ShowFlashData(addr);
+//	spiflash.EraseSector(addr/4096);
+//	ShowFlashData(addr);
+//
+//	for(uint16_t i=0; i<256; i++) Txbuf[i] = i;
+//	spiflash.WriteBytes(addr, Txbuf, 256);
+//	ShowFlashData(addr);
 
-	for(uint16_t i=0; i<256; i++) Txbuf[i] = i;
-	spiflash.WriteBytes(addr, Txbuf, 256);
-	ShowFlashData(addr);
-
-	spiflash.EraseSector(addr/4096);
-	ShowFlashData(addr);
-
-	for(uint16_t i=0; i<256; i++) Txbuf[i] = 255-i;
-	spiflash.WriteBytes(addr, Txbuf, 256);
-	ShowFlashData(addr);
+	MPU6050_Init();
 
 	while(1){
-		GPIO_Toggle(GPIOC, 13);
-		TickDelay_ms(500);
-//		STM_LOG(BOLD_GREEN, TAG, "Count = %d", count++);
+		MPU6050_Read_Accel();
+		MPU6050_Read_Gyro();
+
+		STM_LOG(BOLD_YELLOW, TAG, "Accel: Ax = %f, Ax = %f, Az = %f", Ax, Ay, Az);
+		STM_LOG(BOLD_CYAN  , TAG, "Gyro:  Gx = %f, Gx = %f, Gz = %f", Gx, Gy, Gz);
+
+//		TickDelay_ms(1000);
+//		GPIO_Toggle(GPIOC, 13);
+
 	}
 }
 
@@ -53,10 +77,72 @@ void ShowFlashData(uint32_t addr){
 }
 
 
+void MPU6050_Init(void){
+	uint8_t check;
+	uint8_t Data;
+
+	Result_t res = i2c.Memory_Receive(MPU6050_ADDR,WHO_AM_I_REG,1, &check, 1);
+	STM_LOG_RES(res);
+	STM_LOG(BOLD_RED, TAG, "MPU6050 WHO_AM_I_REG = 0x%02x", check);
+	if (check == 0x68) {
+		Data = 0;
+		res = i2c.Memory_Transmit(MPU6050_ADDR, PWR_MGMT_1_REG, 1,&Data, 1);
+		if(!CheckResult(res)) {
+			STM_LOG_RES(res);
+		}
+		Data = 0x07;
+		res = i2c.Memory_Transmit(MPU6050_ADDR, SMPLRT_DIV_REG, 1, &Data, 1);
+		if(!CheckResult(res)) {
+			STM_LOG_RES(res);
+		}
+		Data = 0x00;
+		res = i2c.Memory_Transmit(MPU6050_ADDR, ACCEL_CONFIG_REG, 1, &Data, 1);
+		if(!CheckResult(res)) {
+			STM_LOG_RES(res);
+		}
+		Data = 0x00;
+		res = i2c.Memory_Transmit(MPU6050_ADDR, GYRO_CONFIG_REG, 1, &Data, 1);
+		if(!CheckResult(res)) {
+			STM_LOG_RES(res);
+		}
+	}
+}
 
 
+void MPU6050_Read_Accel(void){
+	uint8_t Rec_Data[6];
+
+	Result_t res = i2c.Memory_Receive(MPU6050_ADDR, ACCEL_XOUT_H_REG, 1, Rec_Data, 6);
+	if(!CheckResult(res)) {
+		STM_LOG_RES(res);
+	}
+
+	Accel_X_RAW = (int16_t)(Rec_Data[0] << 8 | Rec_Data [1]);
+	Accel_Y_RAW = (int16_t)(Rec_Data[2] << 8 | Rec_Data [3]);
+	Accel_Z_RAW = (int16_t)(Rec_Data[4] << 8 | Rec_Data [5]);
+
+	Ax = Accel_X_RAW/16384.0;
+	Ay = Accel_Y_RAW/16384.0;
+	Az = Accel_Z_RAW/16384.0;
+}
 
 
+void MPU6050_Read_Gyro(void){
+	uint8_t Rec_Data[6];
+
+	Result_t res = i2c.Memory_Receive(MPU6050_ADDR, GYRO_XOUT_H_REG, 1, Rec_Data, 6);
+	if(!CheckResult(res)) {
+		STM_LOG_RES(res);
+	}
+
+	Gyro_X_RAW = (int16_t)(Rec_Data[0] << 8 | Rec_Data [1]);
+	Gyro_Y_RAW = (int16_t)(Rec_Data[2] << 8 | Rec_Data [3]);
+	Gyro_Z_RAW = (int16_t)(Rec_Data[4] << 8 | Rec_Data [5]);
+
+	Gx = Gyro_X_RAW/131.0;
+	Gy = Gyro_Y_RAW/131.0;
+	Gz = Gyro_Z_RAW/131.0;
+}
 
 
 

@@ -33,7 +33,7 @@ typedef enum{
 	GPIO_OUTPUT_PUSHPULL_PULLUP,
 	GPIO_OUTPUT_PUSHPULL_PULLDOWN,
 
-	GPIO_ANALOG
+	GPIO_ANALOGOUTPUT_OD
 } GPIOMode_t;
 
 typedef enum{
@@ -60,6 +60,7 @@ void GPIO_CLOCKENABLE(void);
 void GPIO_PortClockEnable(GPIO_TypeDef *port);
 void GPIO_Init(GPIO_TypeDef *port, uint16_t pin, GPIOMode_t mode);
 void GPIO_AlternateFunction(GPIO_TypeDef *port, uint16_t pin, GPIOAlternateFunction_t function);
+void GPIO_AF_Type(GPIO_TypeDef *port, uint16_t pin, GPIOMode_t mode);
 
 void GPIO_Pullup(GPIO_TypeDef *port, uint16_t pin);
 void GPIO_Pulldown(GPIO_TypeDef *port, uint16_t pin);

@@ -21,6 +21,7 @@
 extern "C"{
 #endif
 
+
 typedef enum{
 	I2C_STANDARD_MODE = 0,
 	I2C_FAST_MODE,
@@ -34,39 +35,38 @@ typedef enum{
 typedef enum{
 	I2C_ADDRESS_7BIT = 0,
 	I2C_ADDRESS_10BIT,
-} I2C_AddrMode_t;
+} I2C_AddressMode_t;
 
 typedef enum{
 	I2C_WRITE = 0,
 	I2C_READ,
-} I2C_Action;
+} I2C_Action_t;
 
 typedef struct{
 	I2C_Mode_t i2c_mode;
 	uint32_t i2c_frequency;
-	I2C_AddrMode_t i2c_addressmode = I2C_ADDRESS_7BIT;
+	I2C_AddressMode_t i2c_addressmode = I2C_ADDRESS_7BIT;
 	I2C_ClockDuty_t i2c_clockduty = I2C_DUTY_2;
 	DMA *TxDma = NULL;
 	DMA *RxDma = NULL;
 	GPIO_TypeDef *SCLPort;
-	GPIO_TypeDef *SDAPort;
 	uint16_t SCLPin;
+	GPIO_TypeDef *SDAPort;
 	uint16_t SDAPin;
-	uint32_t i2c_slavemode_address = 0;
 } I2C_Config_t;
 
 class I2C{
 	public:
-		I2C(I2C_TypeDef *I2C);
+		I2C(I2C_TypeDef *i2c);
 		Result_t Init(I2C_Config_t *conf);
 
 		Result_t WaitBusy(void);
 
 		Result_t SendStart(void);
 		Result_t SendRepeatStart(void);
-		Result_t SendSlaveAddr(uint16_t Slave_Address, I2C_Action Action);
-		Result_t SendStart_SlaveAddr(uint16_t Slave_Address, I2C_Action Action);
-		Result_t SendRepeatStart_SlaveAddr(uint16_t Slave_Address, I2C_Action Action);
+		Result_t SendSlaveAddr(uint16_t Slave_Address, I2C_Action_t Action);
+		Result_t SendStart_SlaveAddr(uint16_t Slave_Address, I2C_Action_t Action);
+		Result_t SendRepeatStart_SlaveAddr(uint16_t Slave_Address, I2C_Action_t Action);
 
 		Result_t Transmit(uint8_t *TxData, uint16_t Size);
 		Result_t Transmit(uint8_t TxData);
@@ -93,7 +93,6 @@ class I2C{
 	private:
 		I2C_TypeDef *_i2c;
 		I2C_Config_t *_conf;
-
 		void ACKError_Action(void);
 		void ClearADDR(void);
 };

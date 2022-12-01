@@ -11,6 +11,7 @@
 #include "RCC_F4xx.h"
 #include "math.h"
 #include "USART_F4xx.h"
+#include "PERIPH_STATUS.h"
 #include "STM_LOG.h"
 
 
@@ -77,11 +78,13 @@ void USART::Init(USART_Config_t *conf){
 
 Result_t USART::Transmit(uint8_t Data){
 	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
 	_usart -> DR = Data;
 
 	res = WaitFlagTimeout(&(_usart -> SR), USART_SR_TC, FLAG_SET, USART_TIMEOUT);
-	if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+	if(!CheckResult(res)){
+		Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
 		return res;
 	}
 
@@ -94,11 +97,13 @@ Result_t USART::Transmit(uint8_t Data){
 
 Result_t USART::SendString(char *String){
 	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
 	while(*String) {
 		res = Transmit(*String++);
 
-		if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+		if(!CheckResult(res)){
+			Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
 			return res;
 		}
 	}
@@ -107,9 +112,11 @@ Result_t USART::SendString(char *String){
 
 Result_t USART::Receive(uint8_t *Data){
 	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
 	res = WaitFlagTimeout(&(_usart -> SR), USART_SR_RXNE, FLAG_SET, USART_TIMEOUT);
-	if(!CheckResult(res)){ Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+	if(!CheckResult(res)){
+		Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
 		return res;
 	}
 
@@ -119,13 +126,13 @@ Result_t USART::Receive(uint8_t *Data){
 }
 
 Result_t USART::TransmitDMA(uint8_t *TxData, uint16_t Length){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
+
 	_usart -> CR3 &=~ USART_CR3_DMAT;
 	res = _TxDma -> Start((uint32_t)TxData, (uint32_t)&_usart -> DR, Length);
-	if(res.Status != OKE){res.CodeLine = __LINE__;
+	if(!CheckResult(res)){
+		Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
 		return res;
 	}
 	_usart -> SR &=~ USART_SR_TC;
@@ -135,13 +142,13 @@ Result_t USART::TransmitDMA(uint8_t *TxData, uint16_t Length){
 }
 
 Result_t USART::ReceiveDMA(uint8_t *RxData, uint16_t Length){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
+
 	_usart -> CR3 &=~ USART_CR3_DMAR;
 	res = _RxDma -> Start((uint32_t)&_usart -> DR, (uint32_t)RxData, Length);
-	if(res.Status != OKE){res.CodeLine = __LINE__;
+	if(!CheckResult(res)){
+		Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
 		return res;
 	}
 	volatile uint32_t tmp = _usart -> SR;
@@ -156,14 +163,14 @@ Result_t USART::ReceiveDMA(uint8_t *RxData, uint16_t Length){
 }
 
 Result_t USART::Stop_DMA(void){
-	Result_t res = {
-		.Status = OKE,
-		.CodeLine = 0,
-	};
+	Result_t res = {OKE};
+	Set_Result_State(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
+
 	if(_usart -> CR3 & USART_CR3_DMAT){
 		_usart -> CR3 &=~ USART_CR3_DMAT;
 		res = _TxDma -> Stop();
-		if(res.Status != OKE){res.CodeLine = __LINE__;
+		if(!CheckResult(res)){
+			Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
 			return res;
 		}
 		_usart -> CR1 &=~ USART_CR1_TXEIE;
@@ -172,7 +179,8 @@ Result_t USART::Stop_DMA(void){
 	if(_usart -> CR3 & USART_CR3_DMAR){
 		_usart -> CR3 &=~ USART_CR3_DMAR;
 		res = _RxDma -> Stop();
-		if(res.Status != OKE){res.CodeLine = __LINE__;
+		if(!CheckResult(res)){
+			Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
 			return res;
 		}
 		_usart -> CR1 &=~ USART_CR1_PEIE;
@@ -180,8 +188,7 @@ Result_t USART::Stop_DMA(void){
 	}
 
 	else{
-		res.CodeLine = __LINE__;
-		res.Status = ERR;
+		Set_Result_State(&res, ERR, __LINE__, __FUNCTION__, __FILE__);
 	}
 
 	return res;

@@ -88,6 +88,11 @@ void GPIO_AlternateFunction(GPIO_TypeDef *port, uint16_t pin, GPIOAlternateFunct
 	}
 }
 
+void GPIO_AF_Type(GPIO_TypeDef *port, uint16_t pin, GPIOMode_t mode){
+	if(mode == GPIO_OUTPUT_OPENDRAIN) port -> OTYPER |= (1U<<pin);
+	else if(mode == GPIO_OUTPUT_PUSHPULL) port -> OTYPER &=~ (1U<<pin);
+}
+
 void GPIO_Pullup(GPIO_TypeDef *port, uint16_t pin){
 	port ->PUPDR &=~ (3U << (pin*2));
 	port ->PUPDR |= (1U << (pin*2));

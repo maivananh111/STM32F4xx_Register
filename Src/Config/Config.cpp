@@ -108,8 +108,8 @@ I2C_Config_t i2c_conf = {
 	.i2c_mode = I2C_FAST_MODE,
 	.i2c_frequency = 400000UL,
 	.SCLPort = GPIOB,
-	.SDAPort = GPIOB,
 	.SCLPin = 6,
+	.SDAPort = GPIOB,
 	.SDAPin = 7,
 };
 I2C i2c(I2C1);
@@ -139,7 +139,6 @@ void Periph_Initialize(void){
 	fls_spi.Init(&fls_spi_conf);
 
 	i2c.Init(&i2c_conf);
-	STM_LOG(BOLD_CYAN, TAG, "I2C1 Initialize OKE.");
 
 }
 
@@ -154,13 +153,9 @@ void AppLayer_Initialize(void){
 	STM_LOG(BOLD_GREEN, TAG, "I2C1 Start scan.");
 	for(uint8_t i=0; i<128; i++){
 		res = i2c.CheckDevices((uint16_t)(i<<1), 3, 5);
-		if(!CheckResult(res)){
-			STM_LOG(BOLD_RED, TAG, "No devices at 0x%02x", i);
-		}
-		else {
+		if(CheckResult(res)){
 			STM_LOG(BOLD_CYAN, TAG, "Finded devices at 0x%02x", i);
 		}
-		STM_LOG(SIMP_BLUE, "I2C Status", "Status %d, Line %d.", res.Status, res.CodeLine);
 	}
 	STM_LOG(BOLD_YELLOW, TAG, "I2C1 End scan.");
 
@@ -168,6 +163,7 @@ void AppLayer_Initialize(void){
 }
 
 static void STM_LOGSET(char *Buffer){
+//	uart_log.SendString(Buffer);
 	uart_log.TransmitDMA((uint8_t *)Buffer, (uint16_t)strlen(Buffer));
 	while(!dma_uart_log_tx_flag);
 	uart_log.Stop_DMA();

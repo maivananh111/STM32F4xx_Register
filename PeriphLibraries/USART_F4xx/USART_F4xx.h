@@ -58,6 +58,9 @@ class USART {
 		Result_t TransmitDMA(uint8_t *TxData, uint16_t Length);
 		Result_t ReceiveDMA(uint8_t *RxData, uint16_t Length);
 
+		Result_t ReceiveUntilIdle(uint8_t *RxData, uint16_t MaxLen);
+		Result_t ReceiveUntilIdleDMA(uint8_t *RxData, uint16_t MaxLen);
+
 		Result_t Stop_DMA(void);
 
 		DMA *_TxDma, *_RxDma;
