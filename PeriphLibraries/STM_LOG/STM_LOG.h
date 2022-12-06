@@ -16,7 +16,7 @@
 #include "stdarg.h"
 #include "PERIPH_STATUS.h"
 
-
+#define LOG_TO_ESP
 #ifdef __cplusplus
 extern "C"{
 #endif

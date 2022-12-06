@@ -26,6 +26,7 @@ extern "C" {
 typedef enum{
 	USART_NORMAL_DMA = 0,
 	USART_INTERRUPT,
+	USART_INTERRUPT_DMA,
 } USART_Type;
 
 typedef enum{
@@ -33,6 +34,22 @@ typedef enum{
 	USART_INTR_TX,
 	USART_INTR_TX_RX,
 } USART_InterruptSelect;
+
+typedef enum{
+	USART_Event_NoEvent,
+	USART_Event_TransmitComplete,
+	USART_Event_ReceiveComplete,
+	USART_Event_BufferOverFlow,
+	USART_Event_IdleDetected,
+	USART_Event_ReceiveEndChar,
+	USART_Event_Error,
+} USART_Event_t;
+
+typedef enum{
+	USART_Reception_Normal,
+	USART_Reception_ToEndChar,
+	USART_Reception_ToIdle,
+} USART_Reception_t;
 
 typedef struct{
 	uint32_t Baudrate;
@@ -51,26 +68,69 @@ class USART {
 		USART(USART_TypeDef *usart);
 		void Init(USART_Config_t *conf);
 
-		Result_t Transmit(uint8_t Data);
+		Result_t Transmit(uint8_t TxData);
+		Result_t Transmit(uint8_t *TxData, uint16_t len);
 		Result_t SendString(char *String);
-		Result_t Receive(uint8_t *Data);
+
+		Result_t Receive(uint8_t *RxData, uint16_t len);
+		Result_t Receive(uint8_t *RxData);
+		uint8_t GetData(void);
+		Result_t GetBuffer(uint8_t **DestBuffer);
+		uint16_t GetDataLength(void);
+
+		Result_t TransmitIT(uint8_t *TxData, uint16_t len);
+		Result_t ReceiveIT(uint16_t BufferSize);
+		Result_t ReceiveToEndCharIT(uint16_t BufferSize, char EndChar = '\0');
+		Result_t StopReceiveIT(void);
 
 		Result_t TransmitDMA(uint8_t *TxData, uint16_t Length);
 		Result_t ReceiveDMA(uint8_t *RxData, uint16_t Length);
 
-		Result_t ReceiveUntilIdle(uint8_t *RxData, uint16_t MaxLen);
-		Result_t ReceiveUntilIdleDMA(uint8_t *RxData, uint16_t MaxLen);
+		Result_t ReceiveUntilIdleIT(uint16_t BufferSize);
+		Result_t ReceiveUntilIdleDMA(uint16_t BufferSize);
+		Result_t StopReceiveUntilIdleIT(void);
 
 		Result_t Stop_DMA(void);
 
+		USART_TypeDef *_usart;
+
 		DMA *_TxDma, *_RxDma;
 
+		uint8_t *RxBuffer = NULL;
+		uint16_t RxLength, RxCount;
+		char EndChar = '\0';
+		USART_Reception_t Reception = USART_Reception_Normal;
 
 	private:
-		USART_TypeDef *_usart;
+
 		USART_Config_t *_conf = NULL;
+
+
 };
 
+
+extern USART usart1;
+extern USART usart2;
+extern USART usart3;
+extern USART uart4;
+extern USART uart5;
+extern USART usart6;
+
+void USART_IRQ_Handler(USART_TypeDef *usart);
+
+void USART1_IRQHandler(void);
+void USART2_IRQHandler(void);
+void USART3_IRQHandler(void);
+void UART4_IRQHandler(void);
+void UART5_IRQHandler(void);
+void USART6_IRQHandler(void);
+
+void USART1_Event_Callback(USART_Event_t event);
+void USART2_Event_Callback(USART_Event_t event);
+void USART3_Event_Callback(USART_Event_t event);
+void UART4_Event_Callback(USART_Event_t event);
+void UART5_Event_Callback(USART_Event_t event);
+void USART6_Event_Callback(USART_Event_t event);
 
 
 #ifdef __cplusplus

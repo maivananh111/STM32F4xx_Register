@@ -59,8 +59,8 @@ Result_t CheckFlag_In_WaitFlagTimeout(__IO uint32_t *RegisterCheck, uint32_t Fla
 									  __IO uint32_t *RegisterWait, uint32_t FlagWait, FlagLevel_t LevelWait,uint16_t TimeOut);
 
 void Set_Line(Result_t *res, uint16_t line);
-void Set_Result(Result_t *res, uint32_t CodeLine, const char *FunctionName, const char *FileName);
-void Set_Result_State(Result_t *res, Status_t Status, uint32_t CodeLine, const char *FunctionName, const char *FileName);
+void Set_Status_Line(Result_t *res, Status_t status, uint16_t line);
+void Result_Init(Result_t *res, Status_t Status, uint32_t CodeLine, const char *FunctionName, const char *FileName);
 
 bool CheckResult(Result_t res);
 bool CheckStatus(Result_t res);

@@ -35,11 +35,11 @@ extern RCC_Config_t rcc;
 extern DMA_Config_t uart_log_TxDma_conf;
 extern DMA uart_log_TxDma;
 extern USART_Config_t uart_log_conf;
-extern USART uart_log;
+extern USART *uart_log;
 extern volatile uint8_t dma_uart_log_tx_flag;
 
-extern DMA_Config_t fls_spi_TxDma_conf;
-extern DMA fls_spi_TxDma;
+extern DMA_Config_t fls_spi_RxDma_conf;
+extern DMA fls_spi_RxDma;
 extern SPI_Config_t fls_spi_conf;
 extern SPI<uint8_t> fls_spi;
 extern SPIFLASH spiflash;
@@ -49,6 +49,7 @@ extern I2C i2c;
 
 
 
+extern uint8_t *Rxbuf;
 
 void Periph_Initialize(void);
 void AppLayer_Initialize(void);

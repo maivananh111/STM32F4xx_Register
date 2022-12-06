@@ -39,14 +39,15 @@ Result_t DMA::Init(DMA_Config_t *conf){
 	Result_t res = {OKE};
 	__IO uint32_t tmpreg;
 	_conf = conf;
-	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
+	Result_Init(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
-	if(_conf -> dma == DMA1) RCC -> AHB1ENR |= RCC_AHB1ENR_DMA1EN;
-	if(_conf -> dma == DMA2) RCC -> AHB1ENR |= RCC_AHB1ENR_DMA2EN;
+	if(_dma == DMA1) RCC -> AHB1ENR |= RCC_AHB1ENR_DMA1EN;
+	if(_dma == DMA2) RCC -> AHB1ENR |= RCC_AHB1ENR_DMA2EN;
 
 	_conf -> dma_stream -> CR &=~ DMA_SxCR_EN;
 	res = WaitFlagTimeout(&(_conf -> dma_stream -> CR), DMA_SxCR_EN, FLAG_RESET, 500U);
-	if(!CheckResult(res)){Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+	if(!CheckResult(res)){
+		Set_Line(&res, __LINE__);
 		return res;
 	}
 
@@ -80,13 +81,13 @@ Result_t DMA::Init(DMA_Config_t *conf){
 		if(Stream == 7U) _IRQn = DMA1_Stream7_IRQn;
 		else _IRQn = (IRQn_Type)(Stream + 11U);
 	}
-	else{
-		if(Stream > 4U) _IRQn = (IRQn_Type)(Stream + 68U);
+	else if(_conf->dma == DMA2){
+		if(Stream > 4U) _IRQn = (IRQn_Type)(Stream + 63U);
 		else _IRQn = (IRQn_Type)(Stream + 56U);
 	}
 
 	__NVIC_SetPriority(_IRQn, _conf -> dma_interrupt_priority);
-	__NVIC_EnableIRQ(_IRQn);
+	__NVIC_EnableIRQ(_IRQn);;
 
 	_state = READY;
 
@@ -95,12 +96,13 @@ Result_t DMA::Init(DMA_Config_t *conf){
 
 Result_t DMA::Start(uint32_t Src_Address, uint32_t Dest_Address, uint32_t Number_Data){
 	Result_t res = {OKE};
-	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
+	Result_Init(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	if(_state == READY){
 		(_conf -> dma_stream) -> CR &=~ (DMA_SxCR_EN);
 		res = WaitFlagTimeout(&(_conf -> dma_stream -> CR), DMA_SxCR_EN, FLAG_RESET, 50U);
-		if(!CheckResult(res)){Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+		if(!CheckResult(res)){
+			Set_Line(&res, __LINE__);
 			return res;
 		}
 
@@ -122,7 +124,7 @@ Result_t DMA::Start(uint32_t Src_Address, uint32_t Dest_Address, uint32_t Number
 		_state = BUSY;
 	}
 	else{
-		Set_Result_State(&res, BUSY, __LINE__, __FUNCTION__, __FILE__);
+		Set_Status_Line(&res, BUSY, __LINE__);
 		return res;
 	}
 
@@ -131,7 +133,7 @@ Result_t DMA::Start(uint32_t Src_Address, uint32_t Dest_Address, uint32_t Number
 
 Result_t DMA::Stop(void){
 	Result_t res = {OKE};
-	Set_Result_State(&res, OKE, 0U, __FUNCTION__, __FILE__);
+	Result_Init(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	if(_state == BUSY){
 		_state = READY;
@@ -140,14 +142,14 @@ Result_t DMA::Stop(void){
 		_conf -> dma_stream -> CR  &=~ DMA_SxCR_EN;
 
 		res = WaitFlagTimeout(&(_conf -> dma_stream -> CR), DMA_SxCR_EN, FLAG_RESET, 5U);
-		if(!CheckResult(res)){Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+		if(!CheckResult(res)){Set_Line(&res, __LINE__);
 			return res;
 		}
 
 		ClearAllIntrFlag();
 	}
 	else{
-		Set_Result_State(&res, ERR, __LINE__, __FUNCTION__, __FILE__);
+		Set_Status_Line(&res, ERR, __LINE__);
 		return res;
 	}
 
@@ -158,15 +160,15 @@ Result_t DMA::PollForTranfer(DMA_InterruptSelect_t PollLevel, uint32_t TimeOut){
 	Result_t res = {OKE};
 	__IO uint32_t PollValue = 0U, tick, isr;
 
-	Set_Result(&res, 0U, __FUNCTION__, __FILE__);
+	Result_Init(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	if(_state != BUSY){
-		Set_Result_State(&res, BUSY, __LINE__, __FUNCTION__, __FILE__);
+		Set_Status_Line(&res, BUSY, __LINE__);
 		return res;
 	}
 
 	if(_conf -> dma_stream -> CR & DMA_SxCR_CIRC){
-		Set_Result_State(&res, NOTSUPPORT, __LINE__, __FUNCTION__, __FILE__);
+		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
 		return res;
 	}
 
@@ -177,7 +179,7 @@ Result_t DMA::PollForTranfer(DMA_InterruptSelect_t PollLevel, uint32_t TimeOut){
 		PollValue = (uint32_t)(0x20U << _Intr_Index);
 	}
 	else{
-		Set_Result_State(&res, ERR, __LINE__, __FUNCTION__, __FILE__);
+		Set_Status_Line(&res, ERR, __LINE__);
 
 		return res;
 	}
@@ -187,7 +189,7 @@ Result_t DMA::PollForTranfer(DMA_InterruptSelect_t PollLevel, uint32_t TimeOut){
 	while(!(isr & PollValue)){
 		if(TimeOut != NO_TIMEOUT){
 			if(GetTick() - tick > TimeOut){
-				Set_Result_State(&res, TIMEOUT, __LINE__, __FUNCTION__, __FILE__);
+				Set_Status_Line(&res, TIMEOUT, __LINE__);
 				return res;
 			}
 		}
@@ -210,7 +212,7 @@ Result_t DMA::PollForTranfer(DMA_InterruptSelect_t PollLevel, uint32_t TimeOut){
 	if(isr & (0x08U << _Intr_Index)){
 		Stop();
 		ClearIFCR((DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTCIF0) << _Intr_Index);
-		Set_Result_State(&res, ERR, __LINE__, __FUNCTION__, __FILE__);
+		Set_Status_Line(&res, ERR, __LINE__);
 		return res;
 	}
 	if(PollLevel == DMA_TRANSFER_COMPLETE_INTERRUPT){

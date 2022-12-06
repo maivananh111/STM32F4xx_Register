@@ -21,26 +21,35 @@ Result_t HSClock_Init(RCC_Config_t *conf){
 	__IO uint32_t tmpreg;
 	_conf = conf;
 
-	Set_Result(&res, __LINE__, __FUNCTION__, __FILE__);
+	Result_Init(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	if(!(RCC -> APB2ENR & RCC_APB2ENR_SYSCFGEN)) RCC -> APB2ENR |= RCC_APB2ENR_SYSCFGEN;
 
 	if(_conf -> CLOCK_SOURCE == HSI_CRYSTAL){
 		RCC -> CR |= RCC_CR_HSION;
 		res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_HSIRDY, FLAG_SET, DEFAULT_TIMEOUT);
-		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
+		if(!CheckResult(res)) {
+			Set_Line(&res, __LINE__);
+			return res;
+		}
 		RCC -> CR |= (_conf -> HSI_TRIM_VALUE << RCC_CR_HSITRIM_Pos);
 	}
 	else if(_conf -> CLOCK_SOURCE == HSE_CRYSTAL){
 		RCC -> CR |= RCC_CR_HSEON;
 		res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_HSERDY, FLAG_SET, DEFAULT_TIMEOUT);
-		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
+		if(!CheckResult(res)) {
+			Set_Line(&res, __LINE__);
+			return res;
+		}
 	}
 
 	if(_conf -> CLOCK_MUX == PLLCLK){
 		RCC -> CR &=~ RCC_CR_PLLON;
 		res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_PLLRDY, FLAG_RESET, DEFAULT_TIMEOUT);
-		if(res.Status != OKE) {res.CodeLine = __LINE__; return res;}
+		if(!CheckResult(res)) {
+			Set_Line(&res, __LINE__);
+			return res;
+		}
 
 		tmpreg = RCC -> CFGR;
 		tmpreg &=~ (RCC_CFGR_HPRE_Msk | RCC_CFGR_PPRE1_Msk | RCC_CFGR_PPRE2_Msk);
@@ -59,7 +68,10 @@ Result_t HSClock_Init(RCC_Config_t *conf){
 
 		RCC -> CR |= RCC_CR_PLLON;
 		res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_PLLRDY, FLAG_SET, DEFAULT_TIMEOUT);
-		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
+		if(!CheckResult(res)) {
+			Set_Line(&res, __LINE__);
+			return res;
+		}
 
 
 		tmpreg = RCC -> CFGR;
@@ -67,7 +79,10 @@ Result_t HSClock_Init(RCC_Config_t *conf){
 		tmpreg |= RCC_CFGR_SW_PLL;
 		RCC -> CFGR = tmpreg;
 		res = WaitFlagTimeoutBasic(&(RCC -> CFGR), RCC_CFGR_SWS_PLL, FLAG_SET, DEFAULT_TIMEOUT);
-		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
+		if(!CheckResult(res)) {
+			Set_Line(&res, __LINE__);
+			return res;
+		}
 	}
 	else if(_conf -> CLOCK_MUX == HSE){
 		tmpreg = RCC -> CFGR;
@@ -75,7 +90,10 @@ Result_t HSClock_Init(RCC_Config_t *conf){
 		tmpreg |= RCC_CFGR_SW_HSE;
 		RCC -> CFGR = tmpreg;
 		res = WaitFlagTimeoutBasic(&(RCC -> CFGR), RCC_CFGR_SWS_HSE, FLAG_SET, DEFAULT_TIMEOUT);
-		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
+		if(!CheckResult(res)) {
+			Set_Line(&res, __LINE__);
+			return res;
+		}
 	}
 
 	else if(_conf -> CLOCK_MUX == HSI){
@@ -84,7 +102,10 @@ Result_t HSClock_Init(RCC_Config_t *conf){
 		tmpreg |= RCC_CFGR_SW_HSI;
 		RCC -> CFGR = tmpreg;
 		res = WaitFlagTimeoutBasic(&(RCC -> CFGR), RCC_CFGR_SWS_HSI, FLAG_RESET, DEFAULT_TIMEOUT);
-		if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
+		if(!CheckResult(res)) {
+			Set_Line(&res, __LINE__);
+			return res;
+		}
 	}
 	(void)tmpreg;
 
@@ -99,7 +120,7 @@ Result_t I2SClock_Init(void){
 	Result_t res = {OKE};
 	__IO uint32_t tmpreg;
 
-	Set_Result(&res, 0U, __FUNCTION__, __FILE__);
+	Result_Init(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	tmpreg = RCC -> PLLI2SCFGR;
 	tmpreg &=~ (RCC_PLLI2SCFGR_PLLI2SN_Msk | RCC_PLLI2SCFGR_PLLI2SR_Msk);
@@ -110,7 +131,10 @@ Result_t I2SClock_Init(void){
 
 	RCC -> CR |= RCC_CR_PLLI2SON;
 	res = WaitFlagTimeoutBasic(&(RCC -> CR), RCC_CR_PLLI2SRDY, FLAG_SET, DEFAULT_TIMEOUT);
-	if(!CheckResult(res)) {Set_Result(&res, __LINE__, __FUNCTION__, __FILE__); return res;}
+	if(!CheckResult(res)) {
+		Set_Line(&res, __LINE__);
+		return res;
+	}
 
 	return res;
 }

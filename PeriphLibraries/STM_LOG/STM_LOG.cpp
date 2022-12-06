@@ -88,6 +88,7 @@ void STM_LOG(log_type_t log_type, const char *tag, const char *format, ...){
 	LOG(Output_buffer);
 	free(Temp_buffer);
 	free(Output_buffer);
+
 }
 
 
