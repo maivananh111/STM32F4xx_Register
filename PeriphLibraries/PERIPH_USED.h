@@ -19,6 +19,15 @@
 #define ENABLE_USART
 #define ENABLE_I2C
 
+/* EXTI ENABLE */
+//#define ENABLE_EXTI0
+//#define ENABLE_EXTI1
+//#define ENABLE_EXTI2
+#define ENABLE_EXTI3
+//#define ENABLE_EXTI4
+//#define ENABLE_EXTI9_5
+//#define ENABLE_EXTI15_10
+
 /* DMA STREAM ENABLE */
 //#define ENABLE_DMA1_STREAM0
 //#define ENABLE_DMA1_STREAM1

@@ -16,7 +16,6 @@
 
 static const uint8_t Channel_Index[8U] = {0U, 6U, 16U, 22U, 0U, 6U, 16U, 22U};
 
-static void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, void (*TxCplt_cb)(void), void (*HTxCplt_cb)(void), void (*TeCplt_cb)(void));
 
 DMA::DMA(DMA_TypeDef *dma){
 	_dma = dma;
@@ -226,8 +225,16 @@ Result_t DMA::PollForTranfer(DMA_InterruptSelect_t PollLevel, uint32_t TimeOut){
 	return res;
 }
 
+uint16_t DMA::GetCounter(void){
+	return _conf -> dma_stream -> NDTR;
+}
 
-static void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, void (*TxCplt_cb)(void), void (*HTxCplt_cb)(void), void (*TeCplt_cb)(void)){
+DMA_Config_t *DMA::GetConfig(void){
+	return _conf;
+}
+
+
+void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, void (*TxCplt_cb)(void), void (*HTxCplt_cb)(void), void (*TeCplt_cb)(void)){
 	uint8_t num_stream = (((uint32_t)stream & 0xFFU) - 16U) / 24U;
 	uint8_t index = Channel_Index[num_stream];
 
@@ -258,70 +265,55 @@ static void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, void (
 	}
 }
 
+
 /* DMA1 IRQ HANDLER */
 #ifdef ENABLE_DMA1_STREAM0
 __WEAK void DMA1_Stream0_TranferComplete_CallBack(void){}
 __WEAK void DMA1_Stream0_HalfTranfer_CallBack(void){}
 __WEAK void DMA1_Stream0_TranferError_CallBack(void){}
-void DMA1_Stream0_IRQHandler(void){
-	DMA_IRQ_Handler(DMA1, DMA1_Stream0, &DMA1_Stream0_TranferComplete_CallBack, &DMA1_Stream0_HalfTranfer_CallBack, &DMA1_Stream0_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA1_STREAM1
 __WEAK void DMA1_Stream1_TranferComplete_CallBack(void){}
 __WEAK void DMA1_Stream1_HalfTranfer_CallBack(void){}
 __WEAK void DMA1_Stream1_TranferError_CallBack(void){}
-void DMA1_Stream1_IRQHandler(void){
-	DMA_IRQ_Handler(DMA1, DMA1_Stream1, &DMA1_Stream1_TranferComplete_CallBack, &DMA1_Stream1_HalfTranfer_CallBack, &DMA1_Stream1_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA1_STREAM2
 __WEAK void DMA1_Stream2_TranferComplete_CallBack(void){}
 __WEAK void DMA1_Stream2_HalfTranfer_CallBack(void){}
 __WEAK void DMA1_Stream2_TranferError_CallBack(void){}
-void DMA1_Stream2_IRQHandler(void){
-	DMA_IRQ_Handler(DMA1, DMA1_Stream2, &DMA1_Stream2_TranferComplete_CallBack, &DMA1_Stream2_HalfTranfer_CallBack, &DMA1_Stream2_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA1_STREAM3
 __WEAK void DMA1_Stream3_TranferComplete_CallBack(void){}
 __WEAK void DMA1_Stream3_HalfTranfer_CallBack(void){}
 __WEAK void DMA1_Stream3_TranferError_CallBack(void){}
-void DMA1_Stream3_IRQHandler(void){
-	DMA_IRQ_Handler(DMA1, DMA1_Stream3, &DMA1_Stream3_TranferComplete_CallBack, &DMA1_Stream3_HalfTranfer_CallBack, &DMA1_Stream3_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA1_STREAM4
 __WEAK void DMA1_Stream4_TranferComplete_CallBack(void){}
 __WEAK void DMA1_Stream4_HalfTranfer_CallBack(void){}
 __WEAK void DMA1_Stream4_TranferError_CallBack(void){}
-void DMA1_Stream4_IRQHandler(void){
-	DMA_IRQ_Handler(DMA1, DMA1_Stream4, &DMA1_Stream4_TranferComplete_CallBack, &DMA1_Stream4_HalfTranfer_CallBack, &DMA1_Stream4_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA1_STREAM5
-void DMA1_Stream5_IRQHandler(void){
-	DMA_IRQ_Handler(DMA1, DMA1_Stream5, &DMA1_Stream5_TranferComplete_CallBack, &DMA1_Stream5_HalfTranfer_CallBack, &DMA1_Stream5_TranferError_CallBack);
-}
 __WEAK void DMA1_Stream5_TranferComplete_CallBack(void){}
 __WEAK void DMA1_Stream5_HalfTranfer_CallBack(void){}
 __WEAK void DMA1_Stream5_TranferError_CallBack(void){}
+
 #endif
 #ifdef ENABLE_DMA1_STREAM6
 __WEAK void DMA1_Stream6_TranferComplete_CallBack(void){}
 __WEAK void DMA1_Stream6_HalfTranfer_CallBack(void){}
 __WEAK void DMA1_Stream6_TranferError_CallBack(void){}
-void DMA1_Stream6_IRQHandler(void){
-	DMA_IRQ_Handler(DMA1, DMA1_Stream6, &DMA1_Stream6_TranferComplete_CallBack, &DMA1_Stream6_HalfTranfer_CallBack, &DMA1_Stream6_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA1_STREAM7
 __WEAK void DMA1_Stream7_TranferComplete_CallBack(void){}
 __WEAK void DMA1_Stream7_HalfTranfer_CallBack(void){}
 __WEAK void DMA1_Stream7_TranferError_CallBack(void){}
-void DMA1_Stream7_IRQHandler(void){
-	DMA_IRQ_Handler(DMA1, DMA1_Stream7, &DMA1_Stream7_TranferComplete_CallBack, &DMA1_Stream7_HalfTranfer_CallBack, &DMA1_Stream7_TranferError_CallBack);
-}
+
 #endif
 
 /* DMA2 IRQ HANDLER */
@@ -329,66 +321,51 @@ void DMA1_Stream7_IRQHandler(void){
 __WEAK void DMA2_Stream0_TranferComplete_CallBack(void){}
 __WEAK void DMA2_Stream0_HalfTranfer_CallBack(void){}
 __WEAK void DMA2_Stream0_TranferError_CallBack(void){}
-void DMA2_Stream0_IRQHandler(void){
-	DMA_IRQ_Handler(DMA2, DMA2_Stream0, &DMA2_Stream0_TranferComplete_CallBack, &DMA2_Stream0_HalfTranfer_CallBack, &DMA2_Stream0_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA2_STREAM1
 __WEAK void DMA2_Stream1_TranferComplete_CallBack(void){}
 __WEAK void DMA2_Stream1_HalfTranfer_CallBack(void){}
 __WEAK void DMA2_Stream1_TranferError_CallBack(void){}
-void DMA2_Stream1_IRQHandler(void){
-	DMA_IRQ_Handler(DMA2, DMA2_Stream1, &DMA2_Stream1_TranferComplete_CallBack, &DMA2_Stream1_HalfTranfer_CallBack, &DMA2_Stream1_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA2_STREAM2
 __WEAK void DMA2_Stream2_TranferComplete_CallBack(void){}
 __WEAK void DMA2_Stream2_HalfTranfer_CallBack(void){}
 __WEAK void DMA2_Stream2_TranferError_CallBack(void){}
-void DMA2_Stream2_IRQHandler(void){
-	DMA_IRQ_Handler(DMA2, DMA2_Stream2, &DMA2_Stream2_TranferComplete_CallBack, &DMA2_Stream2_HalfTranfer_CallBack, &DMA2_Stream2_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA2_STREAM3
 __WEAK void DMA2_Stream3_TranferComplete_CallBack(void){}
 __WEAK void DMA2_Stream3_HalfTranfer_CallBack(void){}
 __WEAK void DMA2_Stream3_TranferError_CallBack(void){}
-void DMA2_Stream3_IRQHandler(void){
-	DMA_IRQ_Handler(DMA2, DMA2_Stream3, &DMA2_Stream3_TranferComplete_CallBack, &DMA2_Stream3_HalfTranfer_CallBack, &DMA2_Stream3_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA2_STREAM4
 __WEAK void DMA2_Stream4_TranferComplete_CallBack(void){}
 __WEAK void DMA2_Stream4_HalfTranfer_CallBack(void){}
 __WEAK void DMA2_Stream4_TranferError_CallBack(void){}
-void DMA2_Stream4_IRQHandler(void){
-	DMA_IRQ_Handler(DMA2, DMA2_Stream4, &DMA2_Stream4_TranferComplete_CallBack, &DMA2_Stream4_HalfTranfer_CallBack, &DMA2_Stream4_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA2_STREAM5
 __WEAK void DMA2_Stream5_TranferComplete_CallBack(void){}
 __WEAK void DMA2_Stream5_HalfTranfer_CallBack(void){}
 __WEAK void DMA2_Stream5_TranferError_CallBack(void){}
-void DMA2_Stream5_IRQHandler(void){
-	DMA_IRQ_Handler(DMA2, DMA2_Stream5, &DMA2_Stream5_TranferComplete_CallBack, &DMA2_Stream5_HalfTranfer_CallBack, &DMA2_Stream5_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA2_STREAM6
 __WEAK void DMA2_Stream6_TranferComplete_CallBack(void){}
 __WEAK void DMA2_Stream6_HalfTranfer_CallBack(void){}
 __WEAK void DMA2_Stream6_TranferError_CallBack(void){}
-void DMA2_Stream6_IRQHandler(void){
-	DMA_IRQ_Handler(DMA2, DMA2_Stream6, &DMA2_Stream6_TranferComplete_CallBack, &DMA2_Stream6_HalfTranfer_CallBack, &DMA2_Stream6_TranferError_CallBack);
-}
+
 #endif
 #ifdef ENABLE_DMA2_STREAM7
 __WEAK void DMA2_Stream7_TranferComplete_CallBack(void){}
 __WEAK void DMA2_Stream7_HalfTranfer_CallBack(void){}
 __WEAK void DMA2_Stream7_TranferError_CallBack(void){}
-void DMA2_Stream7_IRQHandler(void){
-	DMA_IRQ_Handler(DMA2, DMA2_Stream7, &DMA2_Stream7_TranferComplete_CallBack, &DMA2_Stream7_HalfTranfer_CallBack, &DMA2_Stream7_TranferError_CallBack);
-}
+
 #endif
+
 
 #endif
 

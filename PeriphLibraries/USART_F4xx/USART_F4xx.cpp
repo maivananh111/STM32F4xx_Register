@@ -35,14 +35,15 @@ void USART::Init(USART_Config_t *conf){
 	_TxDma = _conf -> TxDma;
 	uint32_t USART_BusFreq = 0UL;
 
-	GPIO_PortClockEnable(_conf -> Port);
+	GPIO_PortClockEnable(_conf -> TxPort);
+	GPIO_PortClockEnable(_conf -> RxPort);
 	if(_usart == USART1 || _usart == USART2 || _usart == USART3){
-		GPIO_AlternateFunction(_conf -> Port, _conf -> TxPin, AF7_USART1_3);
-		GPIO_AlternateFunction(_conf -> Port, _conf -> RxPin, AF7_USART1_3);
+		GPIO_AlternateFunction(_conf -> TxPort, _conf -> TxPin, AF7_USART1_3);
+		GPIO_AlternateFunction(_conf -> RxPort, _conf -> RxPin, AF7_USART1_3);
 	}
 	else{
-		GPIO_AlternateFunction(_conf -> Port, _conf -> TxPin, AF8_USART4_6);
-		GPIO_AlternateFunction(_conf -> Port, _conf -> RxPin, AF8_USART4_6);
+		GPIO_AlternateFunction(_conf -> TxPort, _conf -> TxPin, AF8_USART4_6);
+		GPIO_AlternateFunction(_conf -> RxPort, _conf -> RxPin, AF8_USART4_6);
 	}
 
 
@@ -57,7 +58,7 @@ void USART::Init(USART_Config_t *conf){
 
 	_usart -> CR1 |= USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
 
-	float USARTDIV = (float)(USART_BusFreq/(_conf -> Baudrate * 16.0));
+	float USARTDIV = (float)(USART_BusFreq/(_conf -> usart_baudrate * 16.0));
 	uint16_t DIV_Fraction = 0x00UL;
 	uint16_t DIV_Mantissa = (uint16_t)USARTDIV;
 
@@ -65,7 +66,7 @@ void USART::Init(USART_Config_t *conf){
 	DIV_Fraction = ceil(Fraction);
 	_usart -> BRR = (DIV_Mantissa << 4) | (DIV_Fraction << 0);
 
-	if(_conf -> Type == USART_INTERRUPT || _conf -> Type == USART_INTERRUPT_DMA){
+	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA){
 		IRQn_Type IRQ = USART1_IRQn;
 		if	   (_usart == USART1) IRQ = USART1_IRQn;
 		else if(_usart == USART2) IRQ = USART2_IRQn;
@@ -74,7 +75,7 @@ void USART::Init(USART_Config_t *conf){
 		else if(_usart == UART5)  IRQ = UART5_IRQn;
 		else if(_usart == USART6) IRQ = USART6_IRQn;
 
-		__NVIC_SetPriority(IRQ, _conf -> InterruptPriority);
+		__NVIC_SetPriority(IRQ, _conf -> usart_interruptpriority);
 		__NVIC_EnableIRQ(IRQ);
 	}
 	Transmit('\n');
@@ -179,8 +180,8 @@ Result_t USART::TransmitIT(uint8_t *TxData, uint16_t len){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT || _conf -> Type == USART_INTERRUPT_DMA) {
-		if(_conf -> InterruptSelect & USART_INTR_TX || _conf -> InterruptSelect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_TCIE;
+	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA) {
+		if(_conf -> usart_interruptselect & USART_INTR_TX || _conf -> usart_interruptselect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_TCIE;
 	}
 	else{
 		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
@@ -222,8 +223,8 @@ Result_t USART::ReceiveIT(uint16_t BufferSize){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT || _conf -> Type == USART_INTERRUPT_DMA) {
-		if(_conf -> InterruptSelect & USART_INTR_RX || _conf -> InterruptSelect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
+	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA) {
+		if(_conf -> usart_interruptselect & USART_INTR_RX || _conf -> usart_interruptselect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
 	}
 	else{
 		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
@@ -255,8 +256,8 @@ Result_t USART::ReceiveToEndCharIT(uint16_t BufferSize, char EndChar){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT || _conf -> Type == USART_INTERRUPT_DMA) {
-		if(_conf -> InterruptSelect & USART_INTR_RX || _conf -> InterruptSelect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
+	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA) {
+		if(_conf -> usart_interruptselect & USART_INTR_RX || _conf -> usart_interruptselect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
 	}
 	else{
 		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
@@ -289,8 +290,8 @@ Result_t USART::StopReceiveIT(void){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT || _conf -> Type == USART_INTERRUPT_DMA) {
-		if(((_conf -> InterruptSelect & USART_INTR_RX) || (_conf -> InterruptSelect & USART_INTR_TX_RX))\
+	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA) {
+		if(((_conf -> usart_interruptselect & USART_INTR_RX) || (_conf -> usart_interruptselect & USART_INTR_TX_RX))\
 				&& (_usart -> CR1 & USART_CR1_RXNEIE)){
 			_usart -> CR1 &=~ USART_CR1_RXNEIE;
 
@@ -333,7 +334,7 @@ Result_t USART::TransmitDMA(uint8_t *TxData, uint16_t Length){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT){
+	if(_conf -> usart_type == USART_INTERRUPT){
 		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
 		return res;
 	}
@@ -354,7 +355,7 @@ Result_t USART::ReceiveDMA(uint8_t *RxData, uint16_t Length){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT){
+	if(_conf -> usart_type == USART_INTERRUPT){
 		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
 		return res;
 	}
@@ -380,7 +381,7 @@ Result_t USART::Stop_DMA(void){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT){
+	if(_conf -> usart_type == USART_INTERRUPT){
 		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
 		return res;
 	}
@@ -417,8 +418,8 @@ Result_t USART::ReceiveUntilIdleIT(uint16_t BufferSize){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT || _conf -> Type == USART_INTERRUPT_DMA) {
-		if(_conf -> InterruptSelect & USART_INTR_RX || _conf -> InterruptSelect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
+	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA) {
+		if(_conf -> usart_interruptselect & USART_INTR_RX || _conf -> usart_interruptselect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
 	}
 	else{
 		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
@@ -448,17 +449,60 @@ Result_t USART::ReceiveUntilIdleIT(uint16_t BufferSize){
 	return res;
 }
 
-//Result_t USART::ReceiveUntilIdleDMA(uint16_t BufferSize){
-//
-//}
+Result_t USART::ReceiveUntilIdleDMA(uint16_t BufferSize){
+	Result_t res = {OKE};
+	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
+
+	if(_conf -> usart_type == USART_INTERRUPT_DMA) {
+		if(_conf -> usart_interruptselect & USART_INTR_RX || _conf -> usart_interruptselect & USART_INTR_TX_RX) _usart -> CR1 |= USART_CR1_RXNEIE;
+	}
+	else{
+		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
+		return res;
+	}
+
+	RxCount = BufferSize;
+	RxLength = 0;
+	Reception = USART_Reception_ToIdle;
+	if(RxBuffer != NULL) {
+		free(RxBuffer);
+		RxBuffer = (uint8_t *)malloc(RxCount * sizeof(uint8_t));
+	}
+	else{
+		RxBuffer = (uint8_t *)malloc(RxCount * sizeof(uint8_t));
+	}
+
+	_usart -> CR3 &=~ USART_CR3_DMAR;
+	res = _RxDma -> Start((uint32_t)&_usart -> DR, (uint32_t)RxBuffer, BufferSize);
+	if(!CheckResult(res)){
+		Set_Line(&res, __LINE__);
+		return res;
+	}
+
+	volatile uint32_t tmp = _usart -> SR;
+	tmp = _usart -> DR;
+	(void)tmp;
+
+	_usart -> CR1 |= USART_CR1_PEIE;
+	_usart -> CR3 |= USART_CR3_EIE;
+	_usart -> CR3 |= USART_CR3_DMAR;
+
+	tmp = _usart -> SR;
+	tmp = _usart -> DR;
+	(void)tmp;
+
+	_usart -> CR1 |= USART_CR1_IDLEIE;
+
+	return res;
+}
 
 
 Result_t USART::StopReceiveUntilIdleIT(void){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 
-	if(_conf -> Type == USART_INTERRUPT || _conf -> Type == USART_INTERRUPT_DMA) {
-		if(((_conf -> InterruptSelect & USART_INTR_RX) || (_conf -> InterruptSelect & USART_INTR_TX_RX))\
+	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA) {
+		if(((_conf -> usart_interruptselect & USART_INTR_RX) || (_conf -> usart_interruptselect & USART_INTR_TX_RX))\
 				&& ((_usart -> CR1 & USART_CR1_RXNEIE) && (_usart -> CR1 & USART_CR1_IDLEIE))){
 			_usart -> CR1 &=~ (USART_CR1_RXNEIE | USART_CR1_IDLEIE);
 
@@ -474,11 +518,19 @@ Result_t USART::StopReceiveUntilIdleIT(void){
 	return res;
 }
 
+USART_Config_t *USART::GetConfig(void){
+	return _conf;
+}
+
 
 void USART_IRQ_Handler(USART *usart){
 	uint32_t StatusReg = usart -> _usart -> SR, Control1Reg = usart -> _usart -> CR1;
 	USART_Event_t event = USART_Event_NoEvent;
 	if(StatusReg & USART_SR_RXNE && Control1Reg & USART_CR1_RXNEIE) {
+		volatile uint32_t tmp = usart -> _usart -> SR;
+		tmp = usart -> _usart -> DR;
+		(void)tmp;
+
 		event = USART_Event_ReceiveComplete;
 		usart -> _usart -> SR &=~ USART_SR_RXNE;
 
@@ -489,13 +541,20 @@ void USART_IRQ_Handler(USART *usart){
 			goto EventCB;
 		}
 		if(usart -> Reception == USART_Reception_ToEndChar){
-			if(usart -> RxBuffer[usart -> RxLength] == usart -> EndChar) event = USART_Event_ReceiveEndChar;
+			if(usart -> RxBuffer[usart -> RxLength] == usart -> EndChar) {
+				event = USART_Event_ReceiveEndChar;
+				usart -> _usart -> CR1 &=~ USART_CR1_PEIE;
+				usart -> _usart -> CR3 &=~ USART_CR3_EIE;
+			}
 		}
 		usart -> RxLength++;
 		goto EventCB;
 	}
 
 	if(StatusReg & USART_SR_TC&& Control1Reg & USART_CR1_TCIE) {
+		volatile uint32_t tmp = usart -> _usart -> SR;
+		tmp = usart -> _usart -> DR;
+		(void)tmp;
 
 		event = USART_Event_TransmitComplete;
 		usart -> _usart -> SR &=~ USART_SR_TC;
@@ -504,10 +563,26 @@ void USART_IRQ_Handler(USART *usart){
 	}
 
 	if(StatusReg & USART_SR_IDLE && Control1Reg & USART_CR1_IDLEIE) {
+		volatile uint32_t tmp = usart -> _usart -> SR;
+		tmp = usart -> _usart -> DR;
+		(void)tmp;
+
 		if(usart -> Reception == USART_Reception_ToIdle){
-			event = USART_Event_IdleDetected;
 			usart -> _usart -> SR &=~ (USART_SR_IDLE | USART_SR_RXNE);
-			goto EventCB;
+			usart -> _usart -> CR1 &=~ (USART_CR1_PEIE | USART_CR1_IDLEIE);
+			if(usart -> _usart -> CR3 & USART_CR3_DMAR){
+				usart -> RxCount = usart -> _RxDma -> GetCounter();
+				if(usart -> _RxDma -> GetConfig() -> dma_mode != DMA_CIRCULAR){
+					usart -> _usart -> CR3 &=~ (USART_CR3_EIE | USART_CR3_DMAR);
+					usart -> _RxDma -> Stop();
+				}
+				goto EventCB;
+			}
+			else{
+				event = USART_Event_IdleDetected;
+				usart -> _usart -> CR3 &=~ USART_CR3_EIE;
+				goto EventCB;
+			}
 		}
 	}
 
@@ -519,9 +594,6 @@ void USART_IRQ_Handler(USART *usart){
 	if(usart == &uart5) {UART5_Event_Callback(event);  return;}
 	if(usart == &usart6){USART6_Event_Callback(event); return;}
 
-//	volatile uint32_t tmp = usart -> _usart -> SR;
-//	tmp = usart -> _usart -> DR;
-//	(void)tmp;
 
 }
 
@@ -538,24 +610,7 @@ __WEAK void UART5_Event_Callback(USART_Event_t event){}
 __WEAK void USART6_Event_Callback(USART_Event_t event){}
 
 
-void USART1_IRQHandler(void){
-	USART_IRQ_Handler(&usart1);
-}
-void USART2_IRQHandler(void){
-	USART_IRQ_Handler(&usart2);
-}
-void USART3_IRQHandler(void){
-	USART_IRQ_Handler(&usart3);
-}
-void UART4_IRQHandler(void){
-	USART_IRQ_Handler(&uart4);
-}
-void UART5_IRQHandler(void){
-	USART_IRQ_Handler(&uart5);
-}
-void USART6_IRQHandler(void){
-	USART_IRQ_Handler(&usart6);
-}
+
 
 
 #endif

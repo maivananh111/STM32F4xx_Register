@@ -21,13 +21,12 @@ int main (void){
 	Periph_Initialize();
 	AppLayer_Initialize();
 
-//	spiflash.EraseSector(addr/4096);
-//	ShowFlashData(addr);
-//
-//	for(uint16_t i=0; i<256; i++) Txbuf[i] = i;
-//	spiflash.WriteBytes(addr, Txbuf, 256);
-//	ShowFlashData(addr);
+	spiflash.EraseSector(FlsAddr/4096);
+	ShowFlashData(FlsAddr);
 
+	for(uint16_t i=0; i<256; i++) FlsTxbuf[i] = i;
+	spiflash.WriteBytes(FlsAddr, FlsTxbuf, 256);
+	ShowFlashData(FlsAddr);
 
 
 	while(1){

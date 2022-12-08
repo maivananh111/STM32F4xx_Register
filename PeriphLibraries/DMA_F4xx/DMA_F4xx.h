@@ -93,9 +93,15 @@ class DMA {
 	public:
 		DMA(DMA_TypeDef *dma);
 		Result_t Init(DMA_Config_t *conf);
+
 		Result_t Start(uint32_t Src_Address, uint32_t Dest_Address, uint32_t Number_Data);
 		Result_t Stop(void);
+
+		uint16_t GetCounter(void);
+
 		Result_t PollForTranfer(DMA_InterruptSelect_t PollLevel, uint32_t TimeOut);
+
+		DMA_Config_t *GetConfig(void);
 
 		DMA_Config_t *_conf;
 	private:
@@ -113,6 +119,8 @@ class DMA {
 		volatile uint32_t *ICFR = 0x00000000U;
 		volatile uint32_t *ISR  = 0x00000000U;
 };
+
+void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, void (*TxCplt_cb)(void), void (*HTxCplt_cb)(void), void (*TeCplt_cb)(void));
 
 
 /* DMA1 IRQ HANDLER */
@@ -214,7 +222,6 @@ void DMA2_Stream7_TranferComplete_CallBack(void);
 void DMA2_Stream7_HalfTranfer_CallBack(void);
 void DMA2_Stream7_TranferError_CallBack(void);
 #endif
-
 #ifdef __cplusplus
 }
 #endif

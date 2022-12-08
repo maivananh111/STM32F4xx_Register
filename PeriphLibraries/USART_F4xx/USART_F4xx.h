@@ -52,12 +52,13 @@ typedef enum{
 } USART_Reception_t;
 
 typedef struct{
-	uint32_t Baudrate;
-	USART_Type Type = USART_NORMAL_DMA;
-	USART_InterruptSelect InterruptSelect = USART_INTR_RX;
-	uint32_t InterruptPriority = 0;
-	GPIO_TypeDef *Port;
+	uint32_t usart_baudrate;
+	USART_Type usart_type = USART_NORMAL_DMA;
+	USART_InterruptSelect usart_interruptselect = USART_INTR_RX;
+	uint32_t usart_interruptpriority = 0;
+	GPIO_TypeDef *TxPort;
 	uint16_t TxPin;
+	GPIO_TypeDef *RxPort;
 	uint16_t RxPin;
 	DMA *TxDma = NULL;
 	DMA *RxDma = NULL;
@@ -89,8 +90,11 @@ class USART {
 		Result_t ReceiveUntilIdleIT(uint16_t BufferSize);
 		Result_t ReceiveUntilIdleDMA(uint16_t BufferSize);
 		Result_t StopReceiveUntilIdleIT(void);
+		Result_t StopReceiveUntilIdleDMA(void);
 
 		Result_t Stop_DMA(void);
+
+		USART_Config_t *GetConfig(void);
 
 		USART_TypeDef *_usart;
 
@@ -116,7 +120,7 @@ extern USART uart4;
 extern USART uart5;
 extern USART usart6;
 
-void USART_IRQ_Handler(USART_TypeDef *usart);
+void USART_IRQ_Handler(USART *usart);
 
 void USART1_IRQHandler(void);
 void USART2_IRQHandler(void);

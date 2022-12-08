@@ -55,12 +55,13 @@ DMA_Config_t uart_log_TxDma_conf = {
 
 DMA uart_log_TxDma(DMA2);
 USART_Config_t uart_log_conf = {
-	.Baudrate = 115200,
-	.Type = USART_INTERRUPT_DMA,
-	.InterruptSelect = USART_INTR_RX,
-	.InterruptPriority = 1,
-	.Port = GPIOB,
+	.usart_baudrate = 115200,
+	.usart_type = USART_INTERRUPT_DMA,
+	.usart_interruptselect = USART_INTR_RX,
+	.usart_interruptpriority = 1,
+	.TxPort = GPIOB,
 	.TxPin = 6,
+	.RxPort = GPIOB,
 	.RxPin = 7,
 	.TxDma = &uart_log_TxDma,
 };
@@ -134,6 +135,9 @@ void Periph_Initialize(void){
 
 	GPIO_CLOCKENABLE();
 	GPIO_Init(GPIOC, 13, GPIO_OUTPUT_PUSHPULL);
+
+	EXTI_Init(GPIOE, 3, EXTI_FALLING_EDGE, 1);
+	GPIO_Pullup(GPIOE, 3);
 
 	uart_log_TxDma.Init(&uart_log_TxDma_conf);
 	uart_log -> Init(&uart_log_conf);
@@ -214,5 +218,17 @@ void USART1_Event_Callback(USART_Event_t event){
 	}
 }
 
+void EXTI_Callback(uint16_t Pin){
+	switch(Pin){
+		case 3:
+			STM_LOG(BOLD_RED, TAG, "EXTI Line 3 falling edge detected!");
+		break;
+
+		default:
+			GPIO_Toggle(GPIOC, 13);
+		break;
+	}
+
+}
 
 
