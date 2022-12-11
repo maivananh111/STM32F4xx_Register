@@ -36,12 +36,19 @@ typedef enum{
 	SWD_JTAG,
 } DebugMode_t;
 
+typedef struct{
+	uint32_t heap_ram_used;
+	uint32_t prog_ram_used;
+	uint32_t stack_ram_used;
+	uint32_t free_ram;
+	uint32_t total_free_ram;
+} Memory_t;
+
 void Power_Configuration(PowerConfig_t *pwr_conf);
 void Update_Latency(void);
 void FlashMem_Configuration(FlashMemConfig_t *flh_conf);
-void DebugMode_Select(DebugMode_t mode);
 
-uint32_t Get_FreeMemSize(void);
+Memory_t Get_MemorySize(void);
 
 
 

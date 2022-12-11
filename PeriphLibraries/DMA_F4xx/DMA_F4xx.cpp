@@ -14,6 +14,27 @@
 #include "STM_LOG.h"
 
 
+
+DMA dma1_stream0(DMA1);
+DMA dma1_stream1(DMA1);
+DMA dma1_stream2(DMA1);
+DMA dma1_stream3(DMA1);
+DMA dma1_stream4(DMA1);
+DMA dma1_stream5(DMA1);
+DMA dma1_stream6(DMA1);
+DMA dma1_stream7(DMA1);
+
+DMA dma2_stream0(DMA2);
+DMA dma2_stream1(DMA2);
+DMA dma2_stream2(DMA2);
+DMA dma2_stream3(DMA2);
+DMA dma2_stream4(DMA2);
+DMA dma2_stream5(DMA2);
+DMA dma2_stream6(DMA2);
+DMA dma2_stream7(DMA2);
+
+
+
 static const uint8_t Channel_Index[8U] = {0U, 6U, 16U, 22U, 0U, 6U, 16U, 22U};
 
 
@@ -91,6 +112,11 @@ Result_t DMA::Init(DMA_Config_t *conf){
 	_state = READY;
 
 	return res;
+}
+
+void DMA::Event_Register_Handler(void (*Event_Callback)(void *Parameter, DMA_Event_t event), void *Parameter){
+	this -> Event_Callback = Event_Callback;
+	this -> Parameter = Parameter;
 }
 
 Result_t DMA::Start(uint32_t Src_Address, uint32_t Dest_Address, uint32_t Number_Data){
@@ -234,16 +260,18 @@ DMA_Config_t *DMA::GetConfig(void){
 }
 
 
-void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, void (*TxCplt_cb)(void), void (*HTxCplt_cb)(void), void (*TeCplt_cb)(void)){
+void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, DMA *dmaclass){
 	uint8_t num_stream = (((uint32_t)stream & 0xFFU) - 16U) / 24U;
 	uint8_t index = Channel_Index[num_stream];
+	DMA_Event_t event = DMA_Event_NoEvent;
 
 	if((num_stream < 4)? (dma -> LISR & (DMA_LISR_HTIF0 << index)) : (dma -> HISR & (DMA_HISR_HTIF4 << index))){
 		if(stream -> CR & DMA_SxCR_HTIE){
 			(num_stream < 4)? (dma -> LIFCR = (DMA_LIFCR_CHTIF0 << index)) : (dma -> HIFCR = (DMA_HIFCR_CHTIF4 << index));
 			if(!(stream -> CR & DMA_SxCR_CIRC)){
 				stream -> CR &=~ DMA_SxCR_HTIE;
-				HTxCplt_cb();
+				event = DMA_Event_Half_Tranfer;
+				goto EventCB;
 			}
 		}
 	}
@@ -254,117 +282,24 @@ void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, void (*TxCplt
 		(num_stream < 4)? (dma -> LIFCR = (0x3FU << index)) : (dma -> HIFCR = (0x3FU << index));
 		if(!(stream -> CR & DMA_SxCR_CIRC)){
 			stream -> CR &=~ DMA_SxCR_TCIE;
-			TxCplt_cb();
+			event = DMA_Event_Tranfer_Complete;
+			goto EventCB;
 		}
 	}
 
 	if((num_stream < 4)? (dma -> LISR & (DMA_LISR_TEIF0 << index)) : (dma -> HISR & (DMA_HISR_TEIF4 << index))){
 		stream -> CR &=~ DMA_SxCR_TEIE;
 		(num_stream < 4)? (dma -> LIFCR = (DMA_LIFCR_CTEIF0 << index)) : (dma -> HIFCR = (DMA_HIFCR_CTEIF4 << index));
-		TeCplt_cb();
+		event = DMA_Event_Tranfer_Error;
+		goto EventCB;
 	}
+
+	EventCB:
+	dmaclass -> Event_Callback(dmaclass -> Parameter, event);
 }
 
 
-/* DMA1 IRQ HANDLER */
-#ifdef ENABLE_DMA1_STREAM0
-__WEAK void DMA1_Stream0_TranferComplete_CallBack(void){}
-__WEAK void DMA1_Stream0_HalfTranfer_CallBack(void){}
-__WEAK void DMA1_Stream0_TranferError_CallBack(void){}
 
-#endif
-#ifdef ENABLE_DMA1_STREAM1
-__WEAK void DMA1_Stream1_TranferComplete_CallBack(void){}
-__WEAK void DMA1_Stream1_HalfTranfer_CallBack(void){}
-__WEAK void DMA1_Stream1_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA1_STREAM2
-__WEAK void DMA1_Stream2_TranferComplete_CallBack(void){}
-__WEAK void DMA1_Stream2_HalfTranfer_CallBack(void){}
-__WEAK void DMA1_Stream2_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA1_STREAM3
-__WEAK void DMA1_Stream3_TranferComplete_CallBack(void){}
-__WEAK void DMA1_Stream3_HalfTranfer_CallBack(void){}
-__WEAK void DMA1_Stream3_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA1_STREAM4
-__WEAK void DMA1_Stream4_TranferComplete_CallBack(void){}
-__WEAK void DMA1_Stream4_HalfTranfer_CallBack(void){}
-__WEAK void DMA1_Stream4_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA1_STREAM5
-__WEAK void DMA1_Stream5_TranferComplete_CallBack(void){}
-__WEAK void DMA1_Stream5_HalfTranfer_CallBack(void){}
-__WEAK void DMA1_Stream5_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA1_STREAM6
-__WEAK void DMA1_Stream6_TranferComplete_CallBack(void){}
-__WEAK void DMA1_Stream6_HalfTranfer_CallBack(void){}
-__WEAK void DMA1_Stream6_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA1_STREAM7
-__WEAK void DMA1_Stream7_TranferComplete_CallBack(void){}
-__WEAK void DMA1_Stream7_HalfTranfer_CallBack(void){}
-__WEAK void DMA1_Stream7_TranferError_CallBack(void){}
-
-#endif
-
-/* DMA2 IRQ HANDLER */
-#ifdef ENABLE_DMA2_STREAM0
-__WEAK void DMA2_Stream0_TranferComplete_CallBack(void){}
-__WEAK void DMA2_Stream0_HalfTranfer_CallBack(void){}
-__WEAK void DMA2_Stream0_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA2_STREAM1
-__WEAK void DMA2_Stream1_TranferComplete_CallBack(void){}
-__WEAK void DMA2_Stream1_HalfTranfer_CallBack(void){}
-__WEAK void DMA2_Stream1_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA2_STREAM2
-__WEAK void DMA2_Stream2_TranferComplete_CallBack(void){}
-__WEAK void DMA2_Stream2_HalfTranfer_CallBack(void){}
-__WEAK void DMA2_Stream2_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA2_STREAM3
-__WEAK void DMA2_Stream3_TranferComplete_CallBack(void){}
-__WEAK void DMA2_Stream3_HalfTranfer_CallBack(void){}
-__WEAK void DMA2_Stream3_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA2_STREAM4
-__WEAK void DMA2_Stream4_TranferComplete_CallBack(void){}
-__WEAK void DMA2_Stream4_HalfTranfer_CallBack(void){}
-__WEAK void DMA2_Stream4_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA2_STREAM5
-__WEAK void DMA2_Stream5_TranferComplete_CallBack(void){}
-__WEAK void DMA2_Stream5_HalfTranfer_CallBack(void){}
-__WEAK void DMA2_Stream5_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA2_STREAM6
-__WEAK void DMA2_Stream6_TranferComplete_CallBack(void){}
-__WEAK void DMA2_Stream6_HalfTranfer_CallBack(void){}
-__WEAK void DMA2_Stream6_TranferError_CallBack(void){}
-
-#endif
-#ifdef ENABLE_DMA2_STREAM7
-__WEAK void DMA2_Stream7_TranferComplete_CallBack(void){}
-__WEAK void DMA2_Stream7_HalfTranfer_CallBack(void){}
-__WEAK void DMA2_Stream7_TranferError_CallBack(void){}
-
-#endif
 
 
 #endif

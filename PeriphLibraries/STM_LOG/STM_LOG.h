@@ -62,6 +62,7 @@ typedef enum{
 void STM_LOG_Init(void (*PrintString_Function)(char*));
 void STM_LOG(log_type_t log_type, const char *tag, const char *format, ...);
 void STM_LOG_RES(Result_t res);
+void STM_LOG_MEM(void);
 void STM_LOG_REG(char *RegisterName, __IO uint32_t Register);
 
 #ifdef __cplusplus

@@ -69,6 +69,8 @@ class USART {
 		USART(USART_TypeDef *usart);
 		void Init(USART_Config_t *conf);
 
+		Result_t Event_Register_Handler(void (*Event_Callback)(void *param, USART_Event_t event), void *param);
+
 		Result_t Transmit(uint8_t TxData);
 		Result_t Transmit(uint8_t *TxData, uint16_t len);
 		Result_t SendString(char *String);
@@ -105,6 +107,9 @@ class USART {
 		char EndChar = '\0';
 		USART_Reception_t Reception = USART_Reception_Normal;
 
+		void *Parameter;
+		void (*Event_Callback)(void *param, USART_Event_t event);
+
 	private:
 
 		USART_Config_t *_conf = NULL;
@@ -129,12 +134,6 @@ void UART4_IRQHandler(void);
 void UART5_IRQHandler(void);
 void USART6_IRQHandler(void);
 
-void USART1_Event_Callback(USART_Event_t event);
-void USART2_Event_Callback(USART_Event_t event);
-void USART3_Event_Callback(USART_Event_t event);
-void UART4_Event_Callback(USART_Event_t event);
-void UART5_Event_Callback(USART_Event_t event);
-void USART6_Event_Callback(USART_Event_t event);
 
 
 #ifdef __cplusplus

@@ -74,6 +74,13 @@ typedef enum{
 	DMA_DIRECTMODE_ERROR_INTERRUPT = DMA_SxCR_DMEIE,
 } DMA_InterruptSelect_t;
 
+typedef enum{
+	DMA_Event_NoEvent,
+	DMA_Event_Tranfer_Complete,
+	DMA_Event_Half_Tranfer,
+	DMA_Event_Tranfer_Error,
+} DMA_Event_t;
+
 typedef struct {
 	DMA_TypeDef *dma;
 	DMA_Stream_TypeDef *dma_stream;
@@ -94,6 +101,8 @@ class DMA {
 		DMA(DMA_TypeDef *dma);
 		Result_t Init(DMA_Config_t *conf);
 
+		void Event_Register_Handler(void (*Event_Callback)(void *Parameter, DMA_Event_t event), void *Parameter);
+
 		Result_t Start(uint32_t Src_Address, uint32_t Dest_Address, uint32_t Number_Data);
 		Result_t Stop(void);
 
@@ -103,14 +112,16 @@ class DMA {
 
 		DMA_Config_t *GetConfig(void);
 
-		DMA_Config_t *_conf;
+		void (*Event_Callback)(void *Parameter, DMA_Event_t event);
+		void *Parameter;
+
 	private:
 		void ClearIFCR(__IO uint32_t Value);
 		void ClearAllIntrFlag(void);
 		__IO uint32_t GetISR(void);
 
 		DMA_TypeDef *_dma;
-
+		DMA_Config_t *_conf;
 		Status_t _state = READY;
 		IRQn_Type _IRQn = DMA1_Stream0_IRQn;
 		__IO uint32_t _Intr_Index = 0U;
@@ -120,107 +131,76 @@ class DMA {
 		volatile uint32_t *ISR  = 0x00000000U;
 };
 
-void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, void (*TxCplt_cb)(void), void (*HTxCplt_cb)(void), void (*TeCplt_cb)(void));
+extern DMA dma1_stream0;
+extern DMA dma1_stream1;
+extern DMA dma1_stream2;
+extern DMA dma1_stream3;
+extern DMA dma1_stream4;
+extern DMA dma1_stream5;
+extern DMA dma1_stream6;
+extern DMA dma1_stream7;
 
+extern DMA dma2_stream0;
+extern DMA dma2_stream1;
+extern DMA dma2_stream2;
+extern DMA dma2_stream3;
+extern DMA dma2_stream4;
+extern DMA dma2_stream5;
+extern DMA dma2_stream6;
+extern DMA dma2_stream7;
+
+void DMA_IRQ_Handler(DMA_TypeDef *dma, DMA_Stream_TypeDef *stream, DMA *dmaclass);
 
 /* DMA1 IRQ HANDLER */
 #ifdef ENABLE_DMA1_STREAM0
 void DMA1_Stream0_IRQHandler(void);
-void DMA1_Stream0_TranferComplete_CallBack(void);
-void DMA1_Stream0_HalfTranfer_CallBack(void);
-void DMA1_Stream0_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA1_STREAM1
 void DMA1_Stream1_IRQHandler(void);
-void DMA1_Stream1_TranferComplete_CallBack(void);
-void DMA1_Stream1_HalfTranfer_CallBack(void);
-void DMA1_Stream1_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA1_STREAM2
 void DMA1_Stream2_IRQHandler(void);
-void DMA1_Stream2_TranferComplete_CallBack(void);
-void DMA1_Stream2_HalfTranfer_CallBack(void);
-void DMA1_Stream2_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA1_STREAM3
 void DMA1_Stream3_IRQHandler(void);
-void DMA1_Stream3_TranferComplete_CallBack(void);
-void DMA1_Stream3_HalfTranfer_CallBack(void);
-void DMA1_Stream3_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA1_STREAM4
 void DMA1_Stream4_IRQHandler(void);
-void DMA1_Stream4_TranferComplete_CallBack(void);
-void DMA1_Stream4_HalfTranfer_CallBack(void);
-void DMA1_Stream4_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA1_STREAM5
 void DMA1_Stream5_IRQHandler(void);
-void DMA1_Stream5_TranferComplete_CallBack(void);
-void DMA1_Stream5_HalfTranfer_CallBack(void);
-void DMA1_Stream5_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA1_STREAM6
 void DMA1_Stream6_IRQHandler(void);
-void DMA1_Stream6_TranferComplete_CallBack(void);
-void DMA1_Stream6_HalfTranfer_CallBack(void);
-void DMA1_Stream6_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA1_STREAM7
 void DMA1_Stream7_IRQHandler(void);
-void DMA1_Stream7_TranferComplete_CallBack(void);
-void DMA1_Stream7_HalfTranfer_CallBack(void);
-void DMA1_Stream7_TranferError_CallBack(void);
 #endif
 
 /* DMA2 IRQ HANDLER */
 #ifdef ENABLE_DMA2_STREAM0
 void DMA2_Stream0_IRQHandler(void);
-void DMA2_Stream0_TranferComplete_CallBack(void);
-void DMA2_Stream0_HalfTranfer_CallBack(void);
-void DMA2_Stream0_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA2_STREAM1
 void DMA2_Stream1_IRQHandler(void);
-void DMA2_Stream1_TranferComplete_CallBack(void);
-void DMA2_Stream1_HalfTranfer_CallBack(void);
-void DMA2_Stream1_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA2_STREAM2
 void DMA2_Stream2_IRQHandler(void);
-void DMA2_Stream2_TranferComplete_CallBack(void);
-void DMA2_Stream2_HalfTranfer_CallBack(void);
-void DMA2_Stream2_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA2_STREAM3
 void DMA2_Stream3_IRQHandler(void);
-void DMA2_Stream3_TranferComplete_CallBack(void);
-void DMA2_Stream3_HalfTranfer_CallBack(void);
-void DMA2_Stream3_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA2_STREAM4
 void DMA2_Stream4_IRQHandler(void);
-void DMA2_Stream4_TranferComplete_CallBack(void);
-void DMA2_Stream4_HalfTranfer_CallBack(void);
-void DMA2_Stream4_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA2_STREAM5
 void DMA2_Stream5_IRQHandler(void);
-void DMA2_Stream5_TranferComplete_CallBack(void);
-void DMA2_Stream5_HalfTranfer_CallBack(void);
-void DMA2_Stream5_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA2_STREAM6
 void DMA2_Stream6_IRQHandler(void);
-void DMA2_Stream6_TranferComplete_CallBack(void);
-void DMA2_Stream6_HalfTranfer_CallBack(void);
-void DMA2_Stream6_TranferError_CallBack(void);
 #endif
 #ifdef ENABLE_DMA2_STREAM7
 void DMA2_Stream7_IRQHandler(void);
-void DMA2_Stream7_TranferComplete_CallBack(void);
-void DMA2_Stream7_HalfTranfer_CallBack(void);
-void DMA2_Stream7_TranferError_CallBack(void);
 #endif
 #ifdef __cplusplus
 }

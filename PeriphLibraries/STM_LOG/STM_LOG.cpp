@@ -10,6 +10,7 @@
 
 #include "stm32f4xx.h"
 #include "RCC_F4xx.h"
+#include "SYSTEM_F4xx.h"
 #include "STM_LOG.h"
 #include "string.h"
 #include "stdlib.h"
@@ -93,7 +94,13 @@ void STM_LOG(log_type_t log_type, const char *tag, const char *format, ...){
 
 
 void STM_LOG_RES(Result_t res){
-	STM_LOG(BCKGRN_PURPLE, "RESULT", "Return %s, time = %d[%s -> %s -> %d]", Result_Str[res.Status], res.Time, res.FileName, res.FunctionName, res.CodeLine);
+	STM_LOG(BCKGRN_BLACK, "RESULT", "Return %s, time = %d[%s -> %s -> %d]", Result_Str[res.Status], res.Time, res.FileName, res.FunctionName, res.CodeLine);
+}
+
+void STM_LOG_MEM(void){
+	Memory_t mem = Get_MemorySize();
+	STM_LOG(BCKGRN_BLACK, "MEMORY USED", "heap_ram_used %lu, prog_ram_used %lu, stack_ram_used %lu.", mem.heap_ram_used, mem.prog_ram_used, mem.stack_ram_used);
+	STM_LOG(BCKGRN_BLACK, "MEMORY FREE", "total_free_ram %lu, free_ram %lu.", mem.total_free_ram, mem.free_ram);
 }
 
 void STM_LOG_REG(char *RegisterName, __IO uint32_t Register){

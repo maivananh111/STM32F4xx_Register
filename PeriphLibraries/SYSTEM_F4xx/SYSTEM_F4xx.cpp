@@ -6,6 +6,19 @@
  */
 #include "SYSTEM_F4xx.h"
 #include "stdio.h"
+#include "malloc.h"
+
+
+extern "C" char *sbrk(int i);
+/* Use linker definition */
+extern char _end;
+extern char _sdata;
+extern char _estack;
+extern char _Min_Stack_Size;
+
+static char *ramstart = &_sdata;
+static char *ramend = &_estack;
+static char *minSP = (char*)(ramend - &_Min_Stack_Size);
 
 FlashMemConfig_t *_FlashMem;
 PowerConfig_t *_Power;
@@ -71,8 +84,39 @@ void Update_Latency(void){
 	FLASH -> ACR |= tmpreg;
 }
 
+Memory_t Get_MemorySize(void){
+	Memory_t mem;
+	char *heapend = (char*)sbrk(0);
+	char * stack_ptr = (char*)__get_MSP();
 
+	struct mallinfo mi = mallinfo();
 
+	mem.free_ram = ((stack_ptr < minSP) ? stack_ptr : minSP) - heapend + mi.fordblks;
+	mem.heap_ram_used = mi.uordblks;
+	mem.prog_ram_used = &_end - ramstart;
+	mem.stack_ram_used = ramend - stack_ptr;
+	mem.total_free_ram = mi.fordblks;
+
+	return mem;
+}
+
+uint32_t Get_FreeRamSize(void){
+	char *heapend = (char*)sbrk(0);
+	char * stack_ptr = (char*)__get_MSP();
+
+	struct mallinfo mi = mallinfo();
+
+	return ((stack_ptr < minSP) ? stack_ptr : minSP) - heapend + mi.fordblks;
+}
+
+uint32_t Get_UsedRamSize(void){
+	char *heapend = (char*)sbrk(0);
+	char * stack_ptr = (char*)__get_MSP();
+
+	struct mallinfo mi = mallinfo();
+
+	return mi.uordblk;
+}
 
 
 

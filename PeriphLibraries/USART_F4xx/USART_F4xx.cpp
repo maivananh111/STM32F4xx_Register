@@ -81,6 +81,22 @@ void USART::Init(USART_Config_t *conf){
 	Transmit('\n');
 }
 
+Result_t USART::Event_Register_Handler(void (*Event_Callback)(void *param, USART_Event_t event), void *param){
+	Result_t res = {OKE};
+	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
+	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA) {
+		this -> Event_Callback = Event_Callback;
+		Parameter = param;
+
+		return res;
+	}
+	else
+		Set_Status_Line(&res, NOTSUPPORT, __LINE__);
+
+	return res;
+
+
+}
 
 
 Result_t USART::Transmit(uint8_t TxData){
@@ -587,30 +603,9 @@ void USART_IRQ_Handler(USART *usart){
 	}
 
 	EventCB:
-	if(usart == &usart1){USART1_Event_Callback(event); return;}
-	if(usart == &usart2){USART2_Event_Callback(event); return;}
-	if(usart == &usart3){USART3_Event_Callback(event); return;}
-	if(usart == &uart4) {UART4_Event_Callback(event);  return;}
-	if(usart == &uart5) {UART5_Event_Callback(event);  return;}
-	if(usart == &usart6){USART6_Event_Callback(event); return;}
-
+	usart -> Event_Callback(usart -> Parameter, event);
 
 }
-
-__WEAK void USART1_Event_Callback(USART_Event_t event){}
-
-__WEAK void USART2_Event_Callback(USART_Event_t event){}
-
-__WEAK void USART3_Event_Callback(USART_Event_t event){}
-
-__WEAK void UART4_Event_Callback(USART_Event_t event){}
-
-__WEAK void UART5_Event_Callback(USART_Event_t event){}
-
-__WEAK void USART6_Event_Callback(USART_Event_t event){}
-
-
-
 
 
 #endif
