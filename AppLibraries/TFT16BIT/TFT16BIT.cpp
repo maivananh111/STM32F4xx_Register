@@ -99,12 +99,12 @@ static void TFT_Write16(uint16_t data){
 //--------------------------------------------------------------
 static void TFT_SoftReset(void){
 	TFT_SendCommand(TFT_SOFTRESET);
-	TickDelay_ms(50);
+	delay_ms(50);
 }
 
 static void TFT_HardReset(void){
 	RST_ACTIVE;
-	TickDelay_ms(100);
+	delay_ms(100);
 	RST_IDLE;
 }
 
@@ -228,9 +228,9 @@ void TFT_Init(uint16_t width, uint16_t height){
 	TFT_SendData(0x82);
 
 	TFT_SendCommand(0x11);
-	TickDelay_ms(100);
+	delay_ms(100);
 	TFT_SendCommand(0x29);
-	TickDelay_ms(100);
+	delay_ms(100);
 	TFT_SendCommand(0x2C);
 }
 

@@ -7,9 +7,10 @@
 
 #include "IT_F4xx.h"
 #include "PERIPH_USED.h"
+#include "RCC_F4xx.h"
 #include "USART_F4xx.h"
 #include "DMA_F4xx.h"
-
+#include "TIM_F4xx.h"
 
 
 /* EXTERNAL INTERRUPT */
@@ -53,9 +54,38 @@ void EXTI_Init(GPIO_TypeDef *Port, uint16_t Pin, EXTI_EdgeDetect_t Edge, uint32_
 
 static void EXTI_IRQHandler(uint16_t Pin){
 	if(EXTI -> PR & (1U << Pin)){
-		EXTI -> PR = (1U << Pin);
 		EXTI_Callback(Pin);
+		EXTI -> PR = (1U << Pin);
 	}
+}
+
+
+
+
+
+
+void NMI_Handler(void){
+	STM_Restart(1);
+}
+
+void HardFault_Handler(void){
+	STM_Restart(1);
+}
+
+void MemManage_Handler(void){
+	STM_Restart(1);
+}
+
+void BusFault_Handler(void){
+	STM_Restart(1);
+}
+
+void UsageFault_Handler(void){
+	STM_Restart(1);
+}
+
+void DebugMon_Handler(void){
+	STM_Restart(1);
 }
 
 __WEAK void EXTI_Callback(uint16_t Pin){}
@@ -203,26 +233,171 @@ void DMA2_Stream7_IRQHandler(void){
 
 
 
-
+#ifdef ENABLE_USART1
 void USART1_IRQHandler(void){
 	USART_IRQ_Handler(&usart1);
 }
+#endif
+#ifdef ENABLE_USART2
 void USART2_IRQHandler(void){
 	USART_IRQ_Handler(&usart2);
 }
+#endif
+#ifdef ENABLE_USART3
 void USART3_IRQHandler(void){
 	USART_IRQ_Handler(&usart3);
 }
+#endif
+#ifdef ENABLE_UART4
 void UART4_IRQHandler(void){
 	USART_IRQ_Handler(&uart4);
 }
+#endif
+#ifdef ENABLE_UART5
 void UART5_IRQHandler(void){
 	USART_IRQ_Handler(&uart5);
 }
+#endif
+#ifdef ENABLE_USART6
 void USART6_IRQHandler(void){
 	USART_IRQ_Handler(&usart6);
 }
+#endif
 
 
+
+
+
+#ifdef ENABLE_TIM1
+#ifndef ENABLE_TIM9
+void TIM1_BRK_TIM9_IRQHandler(void){
+	TIM_IRQHandler(&tim1);
+}
+#endif
+#ifndef ENABLE_TIM10
+void TIM1_UP_TIM10_IRQHandler(void){
+	TIM_IRQHandler(&tim1);
+}
+#endif
+#ifndef ENABLE_TIM11
+void TIM1_TRG_COM_TIM11_IRQHandler(void){
+	TIM_IRQHandler(&tim1);
+}
+#endif
+void TIM1_CC_IRQHandler(void){
+	TIM_IRQHandler(&tim1);
+}
+#endif
+
+#ifdef ENABLE_TIM2
+void TIM2_IRQHandler(void){
+	TIM_IRQHandler(&tim2);
+}
+#endif
+
+#ifdef ENABLE_TIM3
+void TIM3_IRQHandler(void){
+	TIM_IRQHandler(&tim3);
+}
+#endif
+
+#ifdef ENABLE_TIM4
+void TIM4_IRQHandler(void){
+	TIM_IRQHandler(&tim4);
+}
+#endif
+
+#ifdef ENABLE_TIM5
+void TIM5_IRQHandler(void){
+	TIM_IRQHandler(&tim5);
+}
+#endif
+
+#ifdef ENABLE_TIM6
+void TIM6_DAC_IRQHandler(void){
+	TIM_IRQHandler(&tim6);
+}
+#endif
+
+#ifdef ENABLE_TIM7
+void TIM7_IRQHandler(void){
+	TIM_IRQHandler(&tim7);
+}
+#endif
+
+#ifdef ENABLE_TIM8
+#ifndef ENABLE_TIM12
+void TIM8_BRK_TIM12_IRQHandler(void){
+	TIM_IRQHandler(&tim8);
+}
+#endif
+#ifndef ENABLE_TIM13
+void TIM8_UP_TIM13_IRQHandler(void){
+	TIM_IRQHandler(&tim8);
+}
+#endif
+#ifndef ENABLE_TIM14
+void TIM8_TRG_COM_TIM14_IRQHandler(void){
+	TIM_IRQHandler(&tim8);
+}
+#endif
+void TIM8_CC_IRQHandler(void){
+	TIM_IRQHandler(&tim8);
+}
+#endif
+
+#ifdef ENABLE_TIM9
+void TIM1_BRK_TIM9_IRQHandler(void){
+#ifdef ENABLE_TIM1
+	TIM_IRQHandler(&tim1);
+#endif
+	TIM_IRQHandler(&tim9);
+}
+#endif
+
+#ifdef ENABLE_TIM10
+void TIM1_UP_TIM10_IRQHandler(void){
+#ifdef ENABLE_TIM1
+	TIM_IRQHandler(&tim1);
+#endif
+	TIM_IRQHandler(&tim10);
+}
+#endif
+
+#ifdef ENABLE_TIM11
+void TIM1_TRG_COM_TIM11_IRQHandler(void){
+#ifdef ENABLE_TIM1
+	TIM_IRQHandler(&tim1);
+#endif
+	TIM_IRQHandler(&tim11);
+}
+#endif
+
+#ifdef ENABLE_TIM12
+void TIM8_BRK_TIM12_IRQHandler(void){
+#ifdef ENABLE_TIM8
+	TIM_IRQHandler(&tim8);
+#endif
+	TIM_IRQHandler(&tim12);
+}
+#endif
+
+#ifdef ENABLE_TIM13
+void TIM8_UP_TIM13_IRQHandler(void){
+#ifdef ENABLE_TIM8
+	TIM_IRQHandler(&tim8);
+#endif
+	TIM_IRQHandler(&tim13);
+}
+#endif
+
+#ifdef ENABLE_TIM14
+void TIM8_TRG_COM_TIM14_IRQHandler(void){
+#ifdef ENABLE_TIM8
+	TIM_IRQHandler(&tim8);
+#endif
+	TIM_IRQHandler(&tim14);
+}
+#endif
 
 #endif

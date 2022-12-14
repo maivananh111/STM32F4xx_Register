@@ -209,11 +209,11 @@ Result_t DMA::PollForTranfer(DMA_InterruptSelect_t PollLevel, uint32_t TimeOut){
 		return res;
 	}
 
-	tick = GetTick();
+	tick = gettick();
 	isr = GetISR();
 	while(!(isr & PollValue)){
 		if(TimeOut != NO_TIMEOUT){
-			if(GetTick() - tick > TimeOut){
+			if(gettick() - tick > TimeOut){
 				Set_Status_Line(&res, TIMEOUT, __LINE__);
 				return res;
 			}

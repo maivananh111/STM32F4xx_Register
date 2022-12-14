@@ -82,17 +82,17 @@ typedef enum{
 } DMA_Event_t;
 
 typedef struct {
-	DMA_TypeDef *dma;
-	DMA_Stream_TypeDef *dma_stream;
-	DMA_Channel_t dma_channel;
-	DMA_Direction_t dma_direction = DMA_MEM_TO_PERIPH;
-	DMA_Mode_t dma_mode = DMA_NORMAL;
-	DMA_DataSize_t dma_data_size = DMA_DATA8BIT;
-	DMA_FifoEn_t dma_fifo = DMA_NOFIFO;
-	DMA_Burst_t dma_burst;
+	DMA_TypeDef           *dma;
+	DMA_Stream_TypeDef 	  *dma_stream;
+	DMA_Channel_t 		  dma_channel;
+	DMA_Direction_t 	  dma_direction = DMA_MEM_TO_PERIPH;
+	DMA_Mode_t 	 		  dma_mode = DMA_NORMAL;
+	DMA_DataSize_t 		  dma_data_size = DMA_DATA8BIT;
+	DMA_FifoEn_t 		  dma_fifo = DMA_NOFIFO;
+	DMA_Burst_t 		  dma_burst = DMA_BURST_4INCREMENTAL;
 	DMA_ChannelPriority_t dma_channel_priority = DMA_CHANNEL_PRIORITY_HIGH;
-	uint32_t dma_interrupt_select = DMA_TRANSFER_COMPLETE_INTERRUPT | DMA_HALF_TRANSFER_INTERRUPT | DMA_TRANSFER_ERROR_INTERRUPT;
-	uint32_t dma_interrupt_priority = 0;
+	uint32_t 			  dma_interrupt_select = DMA_TRANSFER_COMPLETE_INTERRUPT | DMA_HALF_TRANSFER_INTERRUPT | DMA_TRANSFER_ERROR_INTERRUPT;
+	uint32_t 			  dma_interrupt_priority = 0;
 } DMA_Config_t;
 
 

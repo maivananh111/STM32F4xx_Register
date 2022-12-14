@@ -159,7 +159,7 @@ void SPIFLASH::WaitWriteEnd(void) {
 	_spi -> Transmit(CMD_READ_STATUS_1);
     do {
 		_spi -> Receive(&flash_properties.SR1);
-		TickDelay_ms(1);
+		delay_ms(1);
     } while ((flash_properties.SR1 & STATUS_REG_BUSY));
 
 #ifdef SPIFLASH_CSPIN_EN
@@ -183,7 +183,7 @@ uint32_t SPIFLASH::ReadID(void) {
 #ifdef SPIFLASH_CSPIN_EN
     CS_Idle();
 #endif
-    TickDelay_ms(100);
+    delay_ms(100);
 #ifdef SPIFLASH_CSPIN_EN
     CS_Active();
 #endif
@@ -206,9 +206,9 @@ uint32_t SPIFLASH::Init(SPI<uint8_t> *Spi){
 #ifdef SPIFLASH_CSPIN_EN
 	GPIO_Init(_csport, _cspin, GPIO_OUTPUT_PUSHPULL);
 #endif
-	TickDelay_ms(100);
+	delay_ms(100);
 	Reset();
-	TickDelay_ms(100);
+	delay_ms(100);
 	uint32_t ID = ReadID();
 	switch(ID & 0x000000FF){
 		case 0x19:	// 	w25q256

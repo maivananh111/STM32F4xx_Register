@@ -43,16 +43,16 @@ typedef enum{
 } I2C_Action_t;
 
 typedef struct{
-	I2C_Mode_t i2c_mode;
-	uint32_t i2c_frequency;
+	I2C_Mode_t        i2c_mode = I2C_STANDARD_MODE;
+	uint32_t 		  i2c_frequency = 100000U;
 	I2C_AddressMode_t i2c_addressmode = I2C_ADDRESS_7BIT;
-	I2C_ClockDuty_t i2c_clockduty = I2C_DUTY_2;
-	DMA *TxDma = NULL;
-	DMA *RxDma = NULL;
-	GPIO_TypeDef *SCLPort;
-	uint16_t SCLPin;
-	GPIO_TypeDef *SDAPort;
-	uint16_t SDAPin;
+	I2C_ClockDuty_t   i2c_clockduty = I2C_DUTY_2;
+	DMA 			  *TxDma = NULL;
+	DMA 			  *RxDma = NULL;
+	GPIO_TypeDef 	  *SCLPort;
+	uint16_t 		  SCLPin;
+	GPIO_TypeDef 	  *SDAPort;
+	uint16_t 		  SDAPin;
 } I2C_Config_t;
 
 class I2C{

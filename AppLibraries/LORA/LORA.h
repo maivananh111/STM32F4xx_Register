@@ -123,7 +123,7 @@ class LoRa{
 		void setGain(uint8_t gain);
 
 		uint8_t random(void);
-		void handleDio0Rise(void);
+		void IRQHandler(void);
 
 	protected:
 		uint8_t readRegister(uint8_t address);

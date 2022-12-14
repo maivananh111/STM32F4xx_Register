@@ -6,7 +6,7 @@
 #include "Config.h"
 #include "string.h"
 
-const char *TAG = "STM32";
+const char *TAG = "LOG";
 // CS = PA8
 uint8_t FlsRxbuf[256];
 uint8_t FlsTxbuf[256];
@@ -14,35 +14,24 @@ uint32_t FlsAddr = 0x5100UL;
 char buf[17];
 
 void ShowFlashData(uint32_t addr);
-void LoRaTransmit(void);
 
-uint32_t count = 0, tick;
 char *alloc;
 
 int main (void){
 	Periph_Initialize();
-	AppLayer_Initialize();
 
-	spiflash.EraseSector(FlsAddr/4096);
-	ShowFlashData(FlsAddr);
+//	spiflash.EraseSector(FlsAddr/4096);
+//	ShowFlashData(FlsAddr);
+//
+//	for(uint16_t i=0; i<256; i++) FlsTxbuf[i] = i;
+//	spiflash.WriteBytes(FlsAddr, FlsTxbuf, 256);
+//	ShowFlashData(FlsAddr);
 
-	for(uint16_t i=0; i<256; i++) FlsTxbuf[i] = i;
-	spiflash.WriteBytes(FlsAddr, FlsTxbuf, 256);
-	ShowFlashData(FlsAddr);
-
-	tick = GetTick();
 	while(1){
-//		alloc = (char *)malloc(100);
+		GPIO_Set(GPIOC, 13);
+		delay_ms(10);
 
-		GPIO_Reset(GPIOC, 13);
-		TickDelay_ms(10);
 
-		if(GetTick() - tick > 1000){
-			LoRaTransmit();
-			tick = GetTick();
-			DS3231_GetTime(&time);
-			STM_LOG(BOLD_GREEN, "TIME", "%02d:%02d:%02d", time.hour, time.minutes, time.seconds);
-		}
 
 	}
 }
@@ -57,17 +46,7 @@ void ShowFlashData(uint32_t addr){
 	}
 }
 
-void LoRaTransmit(void){
-	char buf[100];
 
-	lora.beginPacket();
-	sprintf( buf, "Count: [%lu]", count++);
-	lora.write((uint8_t*) buf, (size_t) strlen(buf) );
-	lora.endPacket();
-	lora.Receive(0);
-	STM_LOG(BOLD_CYAN, TAG, "LoRa Transmit packet \"Count: [%lu]\"", count);
-	STM_LOG_MEM();
-}
 
 
 

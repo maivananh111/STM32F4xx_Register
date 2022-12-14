@@ -51,10 +51,10 @@ Result_t I2C::Init(I2C_Config_t *conf){
 	_i2c -> CR1 &=~ I2C_CR1_PE;
 	/* ***********************RESET I2C********************** */
 	_i2c -> CR1 |= I2C_CR1_SWRST;
-	TickDelay_ms(5);
+	delay_ms(5);
 	_i2c -> CR1 &= ~I2C_CR1_SWRST;
 	/* ***********************CHECK MINIMUM ALLOWED FREQUENCY********************** */
-	uint32_t apb1_freq = GetBusFreq(APB1);
+	uint32_t apb1_freq = RCC_GetBusFreq(APB1);
 	if(((_conf -> i2c_frequency <= 100000U)? (apb1_freq < I2C_MIN_FREQ_STANDARD) : (apb1_freq < I2C_MIN_FREQ_FAST))) {
 		Set_Status_Line(&res, ERR, __LINE__);
 		return res;
@@ -232,7 +232,7 @@ Result_t I2C::CheckDevices(uint16_t Slave_Address, uint8_t Trials, uint16_t Time
 	Result_Init(&res, OKE, 0U, __FUNCTION__, __FILE__);
 
 	uint8_t I2C_Trials = 1U;
-	__IO uint32_t tick = GetTick();
+	__IO uint32_t tick = gettick();
 
 	res = WaitBusy();
 	if(!CheckStatus(res)){
@@ -252,9 +252,9 @@ Result_t I2C::CheckDevices(uint16_t Slave_Address, uint8_t Trials, uint16_t Time
 
 		_i2c -> DR = (uint8_t)((Slave_Address & 0x00FF) & ~I2C_OAR1_ADD0);
 
-		tick = GetTick();
+		tick = gettick();
 		while(!(_i2c -> SR1 & I2C_SR1_ADDR) && !(_i2c -> SR1 & I2C_SR1_AF)){
-			if(GetTick() - tick > TimeOut){
+			if(gettick() - tick > TimeOut){
 				break;
 			}
 		}
@@ -262,7 +262,7 @@ Result_t I2C::CheckDevices(uint16_t Slave_Address, uint8_t Trials, uint16_t Time
 			_i2c -> CR1 |= I2C_CR1_STOP;
 			_i2c -> SR1 &=~ I2C_SR1_ADDR;
 			while(_i2c -> SR2 & I2C_SR2_BUSY){
-				if(GetTick() - tick > TimeOut){
+				if(gettick() - tick > TimeOut){
 					Set_Status_Line(&res, ERR, __LINE__);
 					return res;
 				}
@@ -274,7 +274,7 @@ Result_t I2C::CheckDevices(uint16_t Slave_Address, uint8_t Trials, uint16_t Time
 			_i2c -> CR1 |= I2C_CR1_STOP;
 			_i2c -> SR1 &=~ I2C_SR1_AF;
 			while(_i2c -> SR2 & I2C_SR2_BUSY){
-				if(GetTick() - tick > TimeOut){
+				if(gettick() - tick > TimeOut){
 					Set_Status_Line(&res, ERR, __LINE__);
 					return res;
 				}

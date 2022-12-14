@@ -17,24 +17,17 @@ extern "C" {
 #include "stdbool.h"
 
 typedef struct{
-	uint32_t System_Clock;
-	uint32_t Latency;
-	bool Prefetch;
-	bool Instruction_Cache;
-	bool Data_Cache;
+	uint32_t rcc_systemclock;
+	uint32_t flash_latency;
+	bool flash_prefetch;
+	bool flash_instructioncache;
+	bool flash_datacache;
 } FlashMemConfig_t;
 
 typedef struct{
-	bool VoltScale2;
-	bool ClockEnable;
+	bool power_voltscale2;
+	bool power_clockenable;
 } PowerConfig_t;
-
-typedef enum{
-	No_Debug,
-	SWD,
-	JTAG,
-	SWD_JTAG,
-} DebugMode_t;
 
 typedef struct{
 	uint32_t heap_ram_used;

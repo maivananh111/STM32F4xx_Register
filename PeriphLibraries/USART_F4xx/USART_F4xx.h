@@ -52,16 +52,16 @@ typedef enum{
 } USART_Reception_t;
 
 typedef struct{
-	uint32_t usart_baudrate;
-	USART_Type usart_type = USART_NORMAL_DMA;
+	uint32_t 			  usart_baudrate;
+	USART_Type 			  usart_type = USART_NORMAL_DMA;
 	USART_InterruptSelect usart_interruptselect = USART_INTR_RX;
-	uint32_t usart_interruptpriority = 0;
-	GPIO_TypeDef *TxPort;
-	uint16_t TxPin;
-	GPIO_TypeDef *RxPort;
-	uint16_t RxPin;
-	DMA *TxDma = NULL;
-	DMA *RxDma = NULL;
+	uint32_t 			  usart_interruptpriority = 0;
+	GPIO_TypeDef 		  *TxPort;
+	uint16_t 			  TxPin;
+	GPIO_TypeDef 		  *RxPort;
+	uint16_t 			  RxPin;
+	DMA 				  *TxDma = NULL;
+	DMA 				  *RxDma = NULL;
 } USART_Config_t;
 
 class USART {
@@ -69,7 +69,7 @@ class USART {
 		USART(USART_TypeDef *usart);
 		void Init(USART_Config_t *conf);
 
-		Result_t Event_Register_Handler(void (*Event_Callback)(void *param, USART_Event_t event), void *param);
+		Result_t Event_Register_Handler(void (*Event_Callback)(void *parameter, USART_Event_t event), void *param);
 
 		Result_t Transmit(uint8_t TxData);
 		Result_t Transmit(uint8_t *TxData, uint16_t len);
@@ -108,7 +108,7 @@ class USART {
 		USART_Reception_t Reception = USART_Reception_Normal;
 
 		void *Parameter;
-		void (*Event_Callback)(void *param, USART_Event_t event);
+		void (*Event_Callback)(void *parameter, USART_Event_t event);
 
 	private:
 
@@ -117,22 +117,42 @@ class USART {
 
 };
 
-
-extern USART usart1;
-extern USART usart2;
-extern USART usart3;
-extern USART uart4;
-extern USART uart5;
-extern USART usart6;
-
 void USART_IRQ_Handler(USART *usart);
 
+#ifdef ENABLE_USART1
+extern USART usart1;
 void USART1_IRQHandler(void);
+#endif
+#ifdef ENABLE_USART2
+extern USART usart2;
 void USART2_IRQHandler(void);
+#endif
+#ifdef ENABLE_USART3
+extern USART usart3;
 void USART3_IRQHandler(void);
+#endif
+#ifdef ENABLE_UART4
+extern USART uart4;
 void UART4_IRQHandler(void);
+#endif
+#ifdef ENABLE_UART5
+extern USART uart5;
 void UART5_IRQHandler(void);
+#endif
+#ifdef ENABLE_USART6
+extern USART usart6;
 void USART6_IRQHandler(void);
+#endif
+
+
+
+
+
+
+
+
+
+
 
 
 

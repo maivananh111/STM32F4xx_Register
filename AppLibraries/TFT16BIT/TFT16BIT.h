@@ -19,13 +19,13 @@ extern "C"{
 #define LCD_CD_PORT    GPIOD  //Command/Data
 #define LCD_WR_PORT    GPIOD  //LCD Write
 #define LCD_RD_PORT    GPIOD  //LCD Read
-#define LCD_RST_PORT   GPIOD  //LCD Reset
+#define LCD_RST_PORT   GPIOB  //LCD Reset
 
 #define LCD_CS    7  //Chip Select
 #define LCD_CD    13  //Command/Data
 #define LCD_WR    5  //LCD Write
 #define LCD_RD    4  //LCD Read
-#define LCD_RST   11  //LCD Reset
+#define LCD_RST   2  //LCD Reset
 
 #define CS_IDLE      LCD_CS_PORT  -> BSRR    |= (1<<LCD_CS)
 #define CD_DATA      LCD_CD_PORT  -> BSRR    |= (1<<LCD_CD)

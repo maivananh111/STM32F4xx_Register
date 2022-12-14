@@ -49,40 +49,46 @@ typedef enum {
 	AHB,
 	APB1,
 	APB2,
+	QBUS,
 } PCLKBus_t;
 
 
 typedef struct{
-	SysClockSource_t CLOCK_SOURCE;
-	uint32_t HSI_CRYSTAL_FREQUENCY;
-	uint32_t HSI_TRIM_VALUE;
-	uint32_t HSE_CRYSTAL_FREQUENCY;
-	SysClockMux_t CLOCK_MUX;
-	uint32_t SYSTEM_FREQUENCY;
-	uint32_t AHB_PRESCALER;
-	uint32_t APB1_PRESCALER;
-	uint32_t APB2_PRESCALER;
+	SysClockSource_t rcc_clocksource;
+	uint32_t         rcc_hsifrequency;
+	uint32_t 		 rcc_hsitrim;
+	uint32_t 		 rcc_hsefrequency;
+	SysClockMux_t 	 rcc_clockmux;
+	uint32_t 		 rcc_systemfrequency;
+	uint32_t 		 rcc_ahbprescaler;
+	uint32_t 		 rcc_apb1prescaler;
+	uint32_t 		 rcc_apb2prescaler;
 	struct PLLn{
-		uint32_t PLLM;
-		uint32_t PLLN;
-		uint32_t PLLP;
-		uint32_t PLLQ;
-		uint32_t PLLI2SN;
-		uint32_t PLLI2SR;
-	} PLL;
+		uint32_t rcc_pllm;
+		uint32_t rcc_plln;
+		uint32_t rcc_pllp;
+		uint32_t rcc_pllq;
+	} rcc_pll;
 } RCC_Config_t;
 
-extern RCC_Config_t *rcc_configuration;
 extern volatile uint32_t Tick;
 
-Result_t HSClock_Init(RCC_Config_t *conf);
-Result_t I2SClock_Init(void);
+Result_t RCC_SystemClock_Init(RCC_Config_t *conf);
 
-uint32_t GetBusFreq(PCLKBus_t Bus);
-#ifdef ENABLE_SYSTEMTICK
-uint32_t GetTick(void);
-void TickDelay_ms(uint32_t delay_ms);
+#ifdef ENABLE_I2S
+Result_t I2SClock_Init(void);
 #endif
+
+uint32_t RCC_GetBusFreq(PCLKBus_t Bus);
+#ifdef ENABLE_SYSTEMTICK
+uint32_t RCC_GetTick(void);
+void RCC_Delay_ms(uint32_t delay_ms);
+#endif
+
+void delay_ms_Init(void (*delay)(uint32_t ms));
+void delay_ms(uint32_t ms);
+void gettick_Init(uint32_t (*get_tick)(void));
+uint32_t gettick(void);
 
 void STM_Restart(uint16_t Time);
 

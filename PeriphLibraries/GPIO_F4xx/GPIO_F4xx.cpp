@@ -78,6 +78,9 @@ void GPIO_AlternateFunction(GPIO_TypeDef *port, uint16_t pin, GPIOAlternateFunct
 	port -> MODER &=~ (3U << (pin*2));
 	port -> MODER |=  (2U << (pin*2));
 
+	port -> OSPEEDR &=~ (3U << (pin * 2));
+	port -> OSPEEDR |=  (GPIO_OUTPUTSPEED_DEFAULT << (pin * 2));
+
 	if(pin < 8){
 		port -> AFR[0] &=~ (0x0FU << (pin*4));
 		port -> AFR[0] |=  (function  << (pin*4));

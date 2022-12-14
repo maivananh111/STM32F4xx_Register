@@ -64,23 +64,23 @@ typedef enum{
 } SPI_ClockSample;
 
 typedef struct {
-	SPI_Mode spi_mode            = SPI_FULLDUPLEXMASTER;
-	SPI_Type spi_type            = SPI_NORMAL_DMA;
+	SPI_Mode 			spi_mode             = SPI_FULLDUPLEXMASTER;
+	SPI_Type 			spi_type             = SPI_NORMAL_DMA;
 	SPI_InterruptSelect spi_IinterruptSelect = SPI_INTR_RX;
-	SPI_DataSize spi_datasize       = SPI_DATA8BIT;
-	SPI_DataFormat spi_dataformat   = SPI_DATAMSB;
-	SPI_ClockDiv spi_clockdivision       = SPI_CLOCKDIV4;
-	SPI_ClockSample spi_clocksample = SPI_CPOL0_CPHA0;
-	uint32_t spi_interruptpriority  = 0;
-	IRQn_Type spi_irq;
-	GPIO_TypeDef *CLKPort;
-	uint16_t CLKPin;
-	GPIO_TypeDef *MISOPort;
-	uint16_t MISOPin;
-	GPIO_TypeDef *MOSIPort;
-	uint16_t MOSIPin;
-	DMA *TxDma = NULL;
-	DMA *RxDma = NULL;
+	SPI_DataSize 		spi_datasize         = SPI_DATA8BIT;
+	SPI_DataFormat 		spi_dataformat  	 = SPI_DATAMSB;
+	SPI_ClockDiv 		spi_clockdivision    = SPI_CLOCKDIV4;
+	SPI_ClockSample 	spi_clocksample 	 = SPI_CPOL0_CPHA0;
+	uint32_t 			spi_interruptpriority = 0;
+	IRQn_Type 			spi_irq;
+	GPIO_TypeDef 		*CLKPort;
+	uint16_t 			CLKPin;
+	GPIO_TypeDef 		*MISOPort;
+	uint16_t 			MISOPin;
+	GPIO_TypeDef 		*MOSIPort;
+	uint16_t 			MOSIPin;
+	DMA 				*TxDma = NULL;
+	DMA 				*RxDma = NULL;
 } SPI_Config_t;
 
 

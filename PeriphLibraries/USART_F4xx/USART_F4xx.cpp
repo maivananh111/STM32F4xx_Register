@@ -15,14 +15,6 @@
 #include "PERIPH_STATUS.h"
 
 
-USART usart1(USART1);
-USART usart2(USART2);
-USART usart3(USART3);
-USART uart4 (UART4);
-USART uart5 (UART5);
-USART usart6(USART6);
-
-
 #define USART_TIMEOUT 100U
 
 USART::USART(USART_TypeDef *usart){
@@ -49,11 +41,11 @@ void USART::Init(USART_Config_t *conf){
 
 	if(_usart == USART1 || _usart == USART6) {
 		RCC -> APB2ENR |= RCC_APB2ENR_USART1EN | RCC_APB2ENR_USART6EN;
-		USART_BusFreq = GetBusFreq(APB2);
+		USART_BusFreq = RCC_GetBusFreq(APB2);
 	}
 	else {
 		RCC -> APB1ENR |= RCC_APB1ENR_USART2EN | RCC_APB1ENR_USART3EN | RCC_APB1ENR_UART4EN | RCC_APB1ENR_UART5EN;
-		USART_BusFreq = GetBusFreq(APB1);
+		USART_BusFreq = RCC_GetBusFreq(APB1);
 	}
 
 	_usart -> CR1 |= USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
@@ -81,7 +73,7 @@ void USART::Init(USART_Config_t *conf){
 	Transmit('\n');
 }
 
-Result_t USART::Event_Register_Handler(void (*Event_Callback)(void *param, USART_Event_t event), void *param){
+Result_t USART::Event_Register_Handler(void (*Event_Callback)(void *parameter, USART_Event_t event), void *param){
 	Result_t res = {OKE};
 	Result_Init(&res, OKE, __LINE__, __FUNCTION__, __FILE__);
 	if(_conf -> usart_type == USART_INTERRUPT || _conf -> usart_type == USART_INTERRUPT_DMA) {
@@ -606,6 +598,26 @@ void USART_IRQ_Handler(USART *usart){
 	usart -> Event_Callback(usart -> Parameter, event);
 
 }
+
+#ifdef ENABLE_USART1
+USART usart1(USART1);
+#endif
+#ifdef ENABLE_USART2
+USART usart2(USART2);
+#endif
+#ifdef ENABLE_USART3
+USART usart3(USART3);
+#endif
+#ifdef ENABLE_UART4
+USART uart4 (UART4);
+#endif
+#ifdef ENABLE_UART5
+USART uart5 (UART5);
+#endif
+#ifdef ENABLE_USART6
+USART usart6(USART6);
+#endif
+
 
 
 #endif

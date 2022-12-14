@@ -27,9 +27,9 @@ bool LoRa::Init(SPI<uint8_t> *spi, long frequency, uint8_t power, uint32_t inter
 
 	GPIO_Init(_rstport, _rst, GPIO_OUTPUT_PUSHPULL);
 	GPIO_Reset(_rstport, _rst);
-    TickDelay_ms(50);
+    delay_ms(50);
     GPIO_Set(_rstport, _rst);
-    TickDelay_ms(50);
+    delay_ms(50);
 
     EXTI_Init(_intport, _int, EXTI_RISING_EDGE, interruptpriority);
     GPIO_Pulldown(_intport, _int);
@@ -404,7 +404,7 @@ void LoRa::implicitHeaderMode(void){
 	writeRegister(REG_MODEM_CONFIG_1, readRegister(REG_MODEM_CONFIG_1) | 0x01);
 }
 
-void LoRa::handleDio0Rise(void){
+void LoRa::IRQHandler(void){
 	uint8_t irqFlags = readRegister(REG_IRQ_FLAGS);
 
 	writeRegister(REG_IRQ_FLAGS, irqFlags);

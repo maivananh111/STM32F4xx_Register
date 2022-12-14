@@ -72,7 +72,7 @@ void STM_LOG_Init(void (*PrintString_Function)(char*)){
 }
 
 void STM_LOG(log_type_t log_type, const char *tag, const char *format, ...){
-	uint32_t time = GetTick();
+	uint32_t time = gettick();
 	char *Temp_buffer = NULL;
 	va_list args;
 	va_start(args, format);
@@ -83,13 +83,14 @@ void STM_LOG(log_type_t log_type, const char *tag, const char *format, ...){
 	va_end(args);
 
 	uint8_t color_start_length = strlen(LOG_COLOR[log_type]);
-	char *Output_buffer = (char *)malloc((color_start_length + 14 + strlen(tag) + 2 + length + 4) * sizeof(char));
+	uint16_t totallen = (color_start_length + 14 + strlen(tag) + 2 + length + 4) * sizeof(char);
+	char *Output_buffer = (char *)malloc(totallen+1);
 	sprintf(Output_buffer, "%s[%lums]%s: %s%s\n\r", LOG_COLOR[log_type], time, tag, Temp_buffer, COLOR_END);
+	Output_buffer[totallen] = '\0';
 
 	LOG(Output_buffer);
 	free(Temp_buffer);
 	free(Output_buffer);
-
 }
 
 
